@@ -49,7 +49,7 @@ export async function installKind(shell: Shell, version: string | null): Promise
 
 export async function getStableKindVersion(shell: Shell): Promise<Errorable<string>> {
   const toolsBaseFolder = baseInstallFolder(shell);
-  const toolReleasesFile = `${toolsBaseFolder}/kind-releases.json`;
+  const toolReleasesFile = path.join(toolsBaseFolder,'kind-releases.json');
   const releaseCacheFile = `${toolReleasesFile}`;
   const releaseResult = await cacheAndGetLatestRelease("kubernetes-sigs","kind",releaseCacheFile);
 

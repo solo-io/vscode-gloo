@@ -51,7 +51,7 @@ export async function installGlooctl(shell: Shell, version: string | null): Prom
 
 export async function getStableGlooCtlVersion(shell: Shell): Promise<Errorable<string>> {
   const toolsBaseFolder = baseInstallFolder(shell);
-  const toolReleasesFile = `${toolsBaseFolder}/glooctl-releases.json`;
+  const toolReleasesFile = path.join(toolsBaseFolder,'glooctl-releases.json');
   const releaseCacheFile = `${toolReleasesFile}`;
   const releaseResult = await cacheAndGetLatestRelease("solo-io","gloo",releaseCacheFile);
 

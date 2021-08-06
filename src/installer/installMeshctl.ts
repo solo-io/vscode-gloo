@@ -9,7 +9,7 @@ import { Errorable, failed } from "../errorable";
 import * as download from "../utils/download";
 import { addPathToConfig, toolPathBaseKey, toolPathOSKey } from "../config/config";
 import { getInstallFolder, platformUrlString, formatBin, platformArch, baseInstallFolder } from "./installationlayout";
-import { asVersionNumber, cacheAndGetLatestRelease } from "../utils/versionUtils";
+import { cacheAndGetLatestRelease } from "../utils/versionUtils";
 
 export async function installGlooMeshCtl(shell: Shell, version: string | null): Promise<Errorable<null>> {
   const tool = "meshctl";
@@ -51,7 +51,7 @@ export async function installGlooMeshCtl(shell: Shell, version: string | null): 
 
 export async function getStableGlooMeshVersion(shell: Shell): Promise<Errorable<string>> {
   const toolsBaseFolder = baseInstallFolder(shell);
-  const toolReleasesFile = `${toolsBaseFolder}/meshctl-releases.json`;
+  const toolReleasesFile = path.join(toolsBaseFolder,'meshctl-releases.json');
   const releaseCacheFile = `${toolReleasesFile}`;
   const releaseResult = await cacheAndGetLatestRelease("solo-io","gloo-mesh",releaseCacheFile);
 
