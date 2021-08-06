@@ -17,6 +17,7 @@ import { checkClusterStatus } from "./utils/clusterChecks";
 import { glooVfsProvider, GLOO_RESOURCE_SCHEME } from "./utils/glooVfsPovider";
 import { GlooItem } from "./glooItem";
 import { Kind } from "./kind/kind";
+import { initPluginDirs } from "./installer/installationlayout";
 
 export let contextGlobalState: vscode.ExtensionContext;
 let k8sExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
@@ -24,9 +25,15 @@ let k8sExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
-  console.log("Jai Guru!");
-
+  
   contextGlobalState = context;
+
+  const initDirsResult = await initPluginDirs(shell);
+
+  if (!initDirsResult){
+    vscode.window.showErrorMessage(`Error activating extension ${initDirsResult}`);
+    return;
+  }
 
   const kubectl = await k8s.extension.kubectl.v1;
 

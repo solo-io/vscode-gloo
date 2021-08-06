@@ -36,7 +36,6 @@ import { asVersionNumber } from "../utils/versionUtils";
 import * as semver from "semver";
 import { GlooEdgeExplorer } from "../tree/glooEdgeExplorer";
 import { checkClusterStatus } from "../utils/clusterChecks";
-import cluster from "cluster";
 
 const COMMAND = "kind";
 
@@ -166,6 +165,7 @@ export class KindImpl implements Kind {
     kindUpgradeAvailable(this.context);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async stop(clusterName?: string): Promise<void> {
     throw new Error("Method not implemented.");
   }

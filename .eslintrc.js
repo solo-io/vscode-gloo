@@ -2,24 +2,21 @@
 
 module.exports = {
   root: true,
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   env: {
-    es6: true,
     node: true
   },
   parserOptions: {
-    "project": "tsconfig.json",
-    "sourceType": "module",
+    'sourceType': 'module',
   },
   plugins: [
-    "@typescript-eslint",
-    "@typescript-eslint/tslint",
-    "header",
+    '@typescript-eslint',
+    'header',
   ],
   extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
+    'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
   ],
   rules: {
     "header/header": [2, "./header.js"],

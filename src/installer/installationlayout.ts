@@ -8,11 +8,20 @@
  *-----------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
+import * as fs from "fs";
 
 import { Platform, Shell } from "../shell";
 
+export async function initPluginDirs(shell:Shell): Promise<boolean> {
+  const pluginDirs = path.join(shell.home(), ".vs-gloo","tools");
+  const pluginDirsExist = fs.existsSync(pluginDirs);
+  if (pluginDirsExist) return pluginDirsExist;
+  const result = await fs.promises.mkdir(pluginDirs,{recursive: true});
+  return result === undefined;
+}
+
 export function baseInstallFolder(shell: Shell): string {
-  return path.join(shell.home(), ".vs-gloo/tools");
+  return path.join(shell.home(), ".vs-gloo","tools");
 }
 
 export function getInstallFolder(shell: Shell, tool: string): string {

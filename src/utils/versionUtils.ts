@@ -44,7 +44,7 @@ export async function getStableReleases(owner:string,repo:string): Promise<Error
 export async function cacheAndGetLatestRelease(owner:string,repo:string,releaseCacheFile:string):Promise<Errorable<string>> {
   let releases: string[];
   try {
-    const stats = fs.statSync(releaseCacheFile,{throwIfNoEntry: false});
+    const stats = await fs.promises.stat(releaseCacheFile,{throwIfNoEntry: false});
     //create or refresh cache
     if (refreshCache(stats)) {
       return await cacheAndGetRelease(releaseCacheFile,repo,owner);
@@ -69,7 +69,7 @@ async function cacheAndGetRelease(releaseCacheFile:string,repo:string,owner): Pr
     return { succeeded: false, error: [`Failed to find solo-io/${repo} stable version: ${releasesResult.error[0]}`]};
   }
   const releases = releasesResult.result;
-  fs.writeFileSync(releaseCacheFile,JSON.stringify(releases));
+  await fs.promises.writeFile(releaseCacheFile,JSON.stringify(releases));
   return { succeeded: true, result:releases[0]};
 }
 

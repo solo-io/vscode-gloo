@@ -42,7 +42,7 @@
     "onLanguage:yaml",
     "onFileSystem:gloo"
   ],
-  "main": "./dist/extension",
+  "main": "./out/src/extension",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -377,9 +377,9 @@
   "scripts": {
     "vscode:prepublish": "npm run build",
     "vscode:publish": "vsce publish",
-    "compile": "npm run compile:ext",
+    "compile": "tsc -p ./ && npm run compile:ext",
     "compile:ext": "webpack --mode none",
-    "clean": "rimraf dist",
+    "clean": "rimraf out",
     "build": "npm run clean && npm run lint && npm run compile",
     "watch": "tsc -watch -p ./",
     "test-compile": "tsc -p ./",
