@@ -1,0 +1,60 @@
+{
+  "meshctl": {
+    "description": "A CLI for interacting with Gloo Mesh",
+    "vendor": "solo.io",
+    "name": "meshctl",
+    "version": "1.1.0-beta20",
+    "versionRange": "1.1.x",
+    "versionRangeLabel": "v1.1.x",
+    "dlFileName": "meshctl",
+    "cmdFileName": "meshctl",
+    "filePrefix": "",
+    "platform": {
+      "win32": {
+        "url": "https://github.com/solo-io/gloo-mesh/releases/download/v1.1.0-beta20/meshctl-windows-amd64.exe",
+        "sha256sum": "53096949cfaffb26f63d54481f9b9656b8384f506b665f991a85617d45e83af5",
+        "dlFileName": "meshctl-windows-amd64.exe",
+        "cmdFileName": "meshctl.exe"
+      },
+      "darwin": {
+        "url": "https://github.com/solo-io/gloo-mesh/releases/download/v1.1.0-beta20/meshctl-darwin-amd64",
+        "sha256sum": "492bf4cc08bcee8f28e7728d345f67bc5ad02cd0eff3691bfe0d2625986773f8",
+        "dlFileName": "meshctl"
+      },
+      "linux": {
+        "url": "https://github.com/solo-io/gloo-mesh/releases/download/v1.1.0-beta20/meshctl-linux-amd64",
+        "sha256sum": "6038986d424a86c8b9abf62b86839466f6e1305a2942609b1872d7ea919846e8",
+        "dlFileName": "meshctl"
+      }
+    }
+  },
+  "glooctl": {
+    "description": "A CLI for interacting with Gloo Edge",
+    "vendor": "solo.io",
+    "name": "glooctl",
+    "version": "1.8.2",
+    "versionRange": "1.7.x",
+    "versionRangeLabel": "v1.8.x",
+    "dlFileName": "glooctl",
+    "cmdFileName": "glooctl",
+    "filePrefix": "",
+    "platform": {
+      "win32": {
+        "url": "https://github.com/solo-io/gloo/releases/download/v1.8.2/glooctl-windows-amd64.exe",
+        "sha256sum": "8042506b8302ad8b2bd7af1213234e7b65896412d53e14b2330a059e241b322a",
+        "dlFileName": "glooctl-windows-amd64.exe",
+        "cmdFileName": "glooctl.exe"
+      },
+      "darwin": {
+        "url": "https://github.com/solo-io/gloo/releases/download/v1.8.2/glooctl-darwin-amd64",
+        "sha256sum": "1378693cc980ac767fea2f424e46e142c79150174c57a8197e97465a41e29771",
+        "dlFileName": "glooctl"
+      },
+      "linux": {
+        "url": "https://github.com/solo-io/gloo/releases/download/v1.8.2/glooctl-linux-amd64",
+        "sha256sum": "350d131b1ce9fb5071e9313ce402a12d5c81ce0f31eaa59ee514b685c0fc3ecc",
+        "dlFileName": "glooctl"
+      }
+    }
+  }
+}

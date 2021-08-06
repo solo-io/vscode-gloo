@@ -1,0 +1,6 @@
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: ${1:name}
+  namespace: ${2:namespace}
+spec: ${0}

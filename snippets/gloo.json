@@ -1,0 +1,123 @@
+{
+  "Gloo Virtual Mesh": {
+    "prefix": "VirtualMesh",
+    "description": "Defines a Gloo Mesh Virutal Mesh Resource",
+    "body": [
+      "apiVersion: networking.mesh.gloo.solo.io/v1",
+      "kind: VirtualMesh",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: ${0}"
+    ]
+  },
+  "Access Policy": {
+    "prefix": "AccessPolicy",
+    "description": "Create a Gloo Mesh Access Policy Resource",
+    "body": [
+      "apiVersion: networking.mesh.gloo.solo.io/v1",
+      "kind: AccessPolicy",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: $0"
+    ]
+  },
+  "Traffic Policy": {
+    "prefix": "TrafficPolicy",
+    "description": "Create a Gloo Mesh Traffic Policy Resource",
+    "body": [
+      "apiVersion: networking.mesh.gloo.solo.io/v1",
+      "kind: TrafficPolicy",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: ${0}"
+    ]
+  },
+  "Virtual Destination": {
+    "prefix": "VirtualDestination",
+    "description": "Create a Gloo Mesh Virtual Destination Resource",
+    "body": [
+      "apiVersion: networking.enterprise.mesh.gloo.solo.io/v1beta1",
+      "kind: VirtualDestination",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: ${0}"
+    ]
+  },
+  "Role": {
+    "prefix": "Role",
+    "description": "Create a Gloo Mesh Role Resource",
+    "body": [
+      "apiVersion: rbac.enterprise.mesh.gloo.solo.io/v1",
+      "kind: Role",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: ${0}"
+    ]
+  },
+  "Role Binding": {
+    "prefix": "RoleBinding",
+    "description": "Create a Gloo Mesh RoleBinding Resource",
+    "body": [
+      "apiVersion: rbac.enterprise.mesh.gloo.solo.io/v1",
+      "kind: RoleBinding",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:gloo-mesh}",
+      "spec: ${0}"
+    ]
+  },
+  "Virtual Service": {
+    "prefix": "VirtualService",
+    "description": "Create a Gloo Virtual Service Resource",
+    "body": [
+      "apiVersion: gateway.solo.io/v1",
+      "kind: VirtualService",
+      "metadata:",
+      "  name: ${1:virtualservice-name}",
+      "  namespace: ${2:gloo-system}",
+      "spec:",
+      "  virtualHost:",
+      "    domains:",
+      "      - \"*\"",
+      "    routes:",
+      "      - matchers:",
+      "          - prefix: /",
+      "        routeAction:",
+      "          single:",
+      "            upstream:",
+      "              name: ${3:upstream-name}",
+      "              namespace: ${4:gloo-system}",
+      "        options:",
+      "          prefixRewrite: /"
+    ]
+  },
+  "Gateway": {
+    "prefix": "Gateway",
+    "description": "Create a Gloo Gateway Resource",
+    "body": [
+      "apiVersion: gateway.solo.io/v1",
+      "kind: Gateway",
+      "metadata:",
+      "  name: ${1:name}",
+      "  namespace: ${2:namespace}",
+      "spec: ${0}"
+    ]
+  },
+  "Upstream": {
+    "prefix": "Upstream",
+    "description": "Create a Gloo Upstream Resource",
+    "body": [
+      "apiVersion: gloo.solo.io/v1",
+      "kind: Upstream",
+      "metadata:",
+      "  name: ${1:my-service-my-namespace-serviceport}",
+      "  namespace: ${2:gloo-system}",
+      "spec: ${0}"
+    ]
+  }
+}

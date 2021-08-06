@@ -1,0 +1,6 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: ${1:my-service-my-namespace-serviceport}
+  namespace: ${2:gloo-system}
+spec: ${0}

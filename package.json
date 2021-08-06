@@ -1,0 +1,443 @@
+{
+  "name": "vscode-gloo",
+  "displayName": "Solo.io Gloo",
+  "description": "vscode support for solo.io Gloo",
+  "version": "0.0.2",
+  "license": "MIT",
+  "publisher": "kameshsampath",
+  "repository": "https://github.com/kameshsampath/vscode-gloo",
+  "bugs": "https://github.com/kameshsampath/vscode-gloo/issues",
+  "icon": "images/gloo-logo.png",
+  "contributors": [
+    {
+      "name": "Kamesh Sampath",
+      "email": "kamesh.sampath@hotmail.com"
+    }
+  ],
+  "preview": true,
+  "engines": {
+    "vscode": "^1.58.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onView:extension.vsKubernetesExplorer",
+    "onView:vscode-gloo.gloo.edge.explorer",
+    "onCommand:vscode-gloo.kind.create",
+    "onCommand:vscode-gloo.kind.delete",
+    "onCommand:vscode-gloo.kind.stop",
+    "onView:vscode-gloo.gloo.mesh.explorer",
+    "onCommand:vscode-gloo.gloo.edge.about",
+    "onCommand:vscode-gloo.gloo.mesh.about",
+    "onCommand:vscode-gloo.gloo.edge.check",
+    "onCommand:vscode-gloo.gloo.mesh.check",
+    "onCommand:vscode-gloo.gloo.edge.install",
+    "onCommand:vscode-gloo.gloo.mesh.install",
+    "onCommand:vscode-gloo.gloo.edge.uninstall",
+    "onCommand:vscode-gloo.gloo.mesh.uninstall",
+    "onCommand:vscode-gloo.openInEditor",
+    "onCommand:vscode-gloo.gloo.edge.explorer.refresh",
+    "onLanguage:yaml",
+    "onFileSystem:gloo"
+  ],
+  "main": "./dist/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Gloo",
+      "properties": {
+        "vscode-gloo.output-format": {
+          "enum": [
+            "json",
+            "yaml"
+          ],
+          "type": "string",
+          "default": "yaml",
+          "description": "Output format for Gloo specs. One of 'json' or 'yaml' (default)."
+        },
+        "vscode-gloo.edge-namespace": {
+          "title": "Gloo Edge Install Namespace",
+          "type": "string",
+          "default": "gloo-system",
+          "description": "The namespace to install Gloo Edge"
+        },
+        "vscode-gloo.edge-edition": {
+          "title": "Gloo Edge Edition (community/enterprise)",
+          "type": "string",
+          "default": "community",
+          "description": "The default Gloo Edge edition to install"
+        },
+        "vscode-gloo.edge.license-key": {
+          "title": "Gloo Edge Enterprise License Key",
+          "type": "string",
+          "description": "The Gloo Edge Enterprise License Key"
+        },
+        "vscode-gloo.mesh-namespace": {
+          "title": "Gloo Mesh Install Namespace",
+          "type": "string",
+          "default": "gloo-mesh",
+          "description": "The namespace to install Gloo Mesh"
+        },
+        "vscode-gloo.mesh-edition": {
+          "title": "Gloo Mesh Enterprise License Key",
+          "type": "string",
+          "default": "community",
+          "description": "The default Gloo Mesh edition to install"
+        },
+        "vscode-gloo.mesh.license-key": {
+          "title": "Gloo Mesh Enterprise License Key",
+          "type": "string",
+          "description": "The Gloo Edge Enterprise License Key"
+        },
+        "vscode-gloo.glooctl.check-upgrade": {
+          "title": "Check for glooctl upgrade",
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Notify on startup if update is available for glooctl"
+        },
+        "vscode-gloo.meshctl.check-upgrade": {
+          "title": "Check for meshtctl upgrade",
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Notify on startup if update is available for meshctl"
+        },
+        "vscode-gloo.kind.check-upgrade": {
+          "title": "Check for kind upgrade",
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "description": "Notify on startup if update is available for kind"
+        },
+        "vscode-gloo.show-channel-output": {
+          "title": "Show channel on output",
+          "type": "boolean",
+          "default": false,
+          "description": "Show Gloo output channel when new text added to output stream"
+        },
+        "vscode-gloo.kind-path": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to kind",
+          "description": "File path to a kind binary. (You can override this on a per-OS basis if required)."
+        },
+        "vscode-gloo.glooctl-path": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to glooctl",
+          "description": "File path to a glooctl binary. (You can override this on a per-OS basis if required)."
+        },
+        "vscode-gloo.meshctl-path": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to meshctl",
+          "description": "File path to a meshctl binary. (You can override this on a per-OS basis if required)."
+        },
+        "vscode-gloo.kind-path.mac": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to kind(Mac)",
+          "description": "File path to a kind binary."
+        },
+        "vscode-gloo.glooctl-path.mac": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to glooctl(Mac)",
+          "description": "File path to a glooctl binary."
+        },
+        "vscode-gloo.meshctl-path.mac": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to meshctl(Mac)",
+          "description": "File path to a meshctl binary."
+        },
+        "vscode-gloo.kind-path.linux": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to kind(Linux)",
+          "description": "File path to a kind binary."
+        },
+        "vscode-gloo.glooctl-path.linux": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to glooctl(Linux)",
+          "description": "File path to a glooctl binary."
+        },
+        "vscode-gloo.meshctl-path.linux": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to meshctl(Linux)",
+          "description": "File path to a meshctl binary."
+        },
+        "vscode-gloo.kind-path.windows": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to kind(Windows)",
+          "description": "File path to a kind binary."
+        },
+        "vscode-gloo.glooctl-path.windows": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to glooctl(Windows)",
+          "description": "File path to a glooctl binary."
+        },
+        "vscode-gloo.meshctl-path.windows": {
+          "type": "string",
+          "scope": "machine",
+          "title": "Path to meshctl(Windows)",
+          "description": "File path to a meshctl binary."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "vscode-gloo.kind.create",
+        "title": "Create a KinD Cluster",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.kind.stop",
+        "title": "Stop KinD Cluster",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.kind.delete",
+        "title": "Delete KinD Cluster",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.edge.about",
+        "title": "About Gloo Edge",
+        "category": "Gloo",
+        "icon": {
+          "dark": "images/dark/versions.svg",
+          "light": "images/light/versions.svg"
+        }
+      },
+      {
+        "command": "vscode-gloo.gloo.edge.check",
+        "title": "Gloo Edge Check",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.edge.install",
+        "title": "Gloo Edge Install",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.edge.uninstall",
+        "title": "Gloo Edge Uninstall",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.mesh.about",
+        "title": "About Gloo Mesh",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.mesh.check",
+        "title": "Gloo Mesh Check",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.mesh.install",
+        "title": "Gloo Mesh Install",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.mesh.uninstall",
+        "title": "Gloo Mesh Uninstall",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.openInEditor",
+        "title": "Edit Resource",
+        "category": "Gloo"
+      },
+      {
+        "command": "vscode-gloo.gloo.edge.explorer.refresh",
+        "title": "Refresh",
+        "category": "Gloo",
+        "icon": {
+          "dark": "images/dark/icon-refresh.svg",
+          "light": "images/light/icon-refresh.svg"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "yaml",
+        "path": "./snippets/gloo.json"
+      }
+    ],
+    "views": {
+      "gloo": [
+        {
+          "id": "vscode-gloo.gloo.edge.explorer",
+          "name": "Gloo Edge"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gloo",
+          "title": "Gloo",
+          "icon": "images/gloo.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "vscode-gloo.gloo.edge.explorer",
+        "contents": "Cluster is not accessible. Use install tool to start Cluster or any other cluster which is active. \n[Kind](https://kubernetes.io/docs/tasks/tools/#kind) \n\nCreate local cluster quikcly with kind. \n[Create KinD Cluster](command:vscode-gloo.kind.create) \nYou can also check other Kubernetes local cluster tools like [Minikube](https://kubernetes.io/docs/tasks/tools/#minikube).",
+        "when": "gloo.cluster"
+      },
+      {
+        "view": "vscode-gloo.gloo.edge.explorer",
+        "contents": "Gloo Edge is not installed,check [Gloo Edge Documentation](https://docs.solo.io/gloo-edge/latest/getting_started/) to get started. \n\nYou can also click the button below to install Gloo Edge on to your local active kubernetes cluster.  \n[Install Gloo Edge](command:vscode-gloo.gloo.edge.install)",
+        "when": "gloo.edge"
+      },
+      {
+        "view": "vscode-gloo.gloo.mesh.explorer",
+        "contents": "Gloo Mesh is not installed. \n[Gloo Mesh](https://docs.solo.io/gloo-mesh/latest/) to get started. You can also click the button below to install Gloo Edge on to your Kubernetes cluster.\n[Install Gloo Mesh](command:vscode-gloo.gloo.mesh.install)",
+        "when": "gloo.mesh"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "vscode-gloo.openInEditor",
+          "when": "view == vscode-gloo.gloo.edge.explorer && listHasSelectionOrFocus"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vscode-gloo.gloo.edge.explorer.refresh",
+          "when": "view == vscode-gloo.gloo.edge.explorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vscode-gloo.gloo.edge.about",
+          "when": "view == vscode-gloo.gloo.edge.explorer",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vscode-gloo.openInEditor",
+          "when": "view == vscode-gloo.gloo.edge.explorer && viewItem =~ /^(virtualservice|upstream|gateway)$/",
+          "group": "c0@1"
+        },
+        {
+          "command": "vscode-gloo.gloo.edge.install",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "2@1"
+        },
+        {
+          "command": "vscode-gloo.gloo.mesh.install",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "3@1"
+        },
+        {
+          "command": "vscode-gloo.gloo.edge.check",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "2@2"
+        },
+        {
+          "command": "vscode-gloo.gloo.mesh.check",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "3@2"
+        },
+        {
+          "command": "vscode-gloo.gloo.edge.uninstall",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "2@3"
+        },
+        {
+          "command": "vscode-gloo.gloo.mesh.uninstall",
+          "when": "view == extension.vsKubernetesExplorer && viewItem =~ /vsKubernetes\\.\\w*cluster($|\\s)/i",
+          "group": "3@3"
+        }
+      ]
+    }
+  },
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
+  "keywords": [
+    "kubernetes",
+    "yaml",
+    "autocompletion",
+    "gloo"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "vscode:publish": "vsce publish",
+    "compile": "npm run compile:ext",
+    "compile:ext": "webpack --mode none",
+    "clean": "rimraf dist",
+    "build": "npm run clean && npm run lint && npm run compile",
+    "watch": "tsc -watch -p ./",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "pretest": "npm run test-compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "ext-test": "npm run pretest && node ./out/src/test/runTest.js",
+    "test": "mocha -r ts-node/register src/test/**/*.test.ts",
+    "snippets-build": "node ./out/build/build-snippets.js",
+    "update-deps": "node_modules/.bin/ncu --upgrade --loglevel verbose --packageFile package.json && npm update"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/fs-extra": "^9.0.12",
+    "@types/glob": "^7.1.3",
+    "@types/lodash": "^4.14.172",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^16.4.0",
+    "@types/semver": "^7.3.7",
+    "@types/vscode": "^1.58.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.29.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "chai": "^4.3.4",
+    "electron": "^13.1.8",
+    "eslint": "^7.27.0",
+    "eslint-plugin-header": "^3.1.1",
+    "glob": "^7.1.7",
+    "mocha": "^8.4.0",
+    "ts-loader": "^9.2.2",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.2",
+    "vscode-test": "^1.5.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^0.15.0",
+    "download": "^8.0.0",
+    "fs-extra": "^10.0.0",
+    "hasha": "^5.2.2",
+    "js-yaml": "^3.14.1",
+    "jstream": "^1.1.1",
+    "lodash": "^4.17.21",
+    "mkdirp": "^0.5.5",
+    "moment": "^2.29.1",
+    "node-yaml-parser": "^0.0.9",
+    "octokit": "^1.1.0",
+    "request": "^2.88.2",
+    "request-progress": "^3.0.0",
+    "semver": "^7.3.5",
+    "shelljs": "^0.8.4",
+    "string-format": "^2.0.0",
+    "targz": "^1.0.1",
+    "tmp": "^0.2.1",
+    "unzip-stream": "^0.3.1",
+    "vscode-kubernetes-tools-api": "^1.3.0",
+    "which": "^2.0.2"
+  }
+}

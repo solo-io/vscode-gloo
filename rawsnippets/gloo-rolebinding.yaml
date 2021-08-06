@@ -1,0 +1,6 @@
+apiVersion: rbac.enterprise.mesh.gloo.solo.io/v1
+kind: RoleBinding
+metadata:
+  name: ${1:name}
+  namespace: ${2:gloo-mesh}
+spec: ${0}

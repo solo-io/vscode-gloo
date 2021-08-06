@@ -1,0 +1,6 @@
+apiVersion: networking.mesh.gloo.solo.io/v1
+kind: TrafficPolicy
+metadata:
+  name: ${1:name}
+  namespace: ${2:gloo-mesh}
+spec: ${0}

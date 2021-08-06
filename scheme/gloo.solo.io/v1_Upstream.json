@@ -1,0 +1,727 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/Upstream",
+  "definitions": {
+    "BoolValue": {
+      "properties": {
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CircuitBreakerConfig": {
+      "properties": {
+        "maxConnections": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "maxPendingRequests": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "maxRequests": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "maxRetries": {
+          "$ref": "#/definitions/UInt32Value"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ConnectionConfig": {
+      "properties": {
+        "maxRequestsPerConnection": {
+          "type": "integer"
+        },
+        "connectTimeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "tcpKeepalive": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ConnectionConfig_TcpKeepAlive"
+        },
+        "perConnectionBufferLimitBytes": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "commonHttpProtocolOptions": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ConnectionConfig_HttpProtocolOptions"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ConnectionConfig_HttpProtocolOptions": {
+      "properties": {
+        "idleTimeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "maxHeadersCount": {
+          "type": "integer"
+        },
+        "maxStreamDuration": {
+          "$ref": "#/definitions/Duration"
+        },
+        "headersWithUnderscoresAction": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ConnectionConfig_TcpKeepAlive": {
+      "properties": {
+        "keepaliveProbes": {
+          "type": "integer"
+        },
+        "keepaliveTime": {
+          "$ref": "#/definitions/Duration"
+        },
+        "keepaliveInterval": {
+          "$ref": "#/definitions/Duration"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "DiscoveryMetadata": {
+      "properties": {
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "DoubleValue": {
+      "properties": {
+        "value": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Duration": {
+      "properties": {
+        "seconds": {
+          "type": "integer"
+        },
+        "nanos": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Failover": {
+      "properties": {
+        "prioritizedLocalities": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Failover_PrioritizedLocality"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Failover_PrioritizedLocality": {
+      "properties": {
+        "localityEndpoints": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/LocalityLbEndpoints"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FieldsV1": {
+      "properties": {},
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "HealthCheck": {
+      "required": [
+        "healthChecker"
+      ],
+      "properties": {
+        "timeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "interval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "initialJitter": {
+          "$ref": "#/definitions/Duration"
+        },
+        "intervalJitter": {
+          "$ref": "#/definitions/Duration"
+        },
+        "intervalJitterPercent": {
+          "type": "integer"
+        },
+        "unhealthyThreshold": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "healthyThreshold": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "reuseConnection": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/BoolValue"
+        },
+        "healthChecker": {
+          "additionalProperties": true
+        },
+        "noTrafficInterval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "unhealthyInterval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "unhealthyEdgeInterval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "healthyEdgeInterval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "eventLogPath": {
+          "type": "string"
+        },
+        "alwaysLogHealthCheckFailures": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LbEndpoint": {
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "healthCheckConfig": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/LbEndpoint_HealthCheckConfig"
+        },
+        "upstreamSslConfig": {
+          "$ref": "#/definitions/UpstreamSslConfig"
+        },
+        "loadBalancingWeight": {
+          "$ref": "#/definitions/UInt32Value"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LbEndpoint_HealthCheckConfig": {
+      "properties": {
+        "portValue": {
+          "type": "integer"
+        },
+        "hostname": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LoadBalancerConfig": {
+      "required": [
+        "type",
+        "localityConfig"
+      ],
+      "properties": {
+        "healthyPanicThreshold": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/DoubleValue"
+        },
+        "updateMergeWindow": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Duration"
+        },
+        "type": {
+          "additionalProperties": true
+        },
+        "localityConfig": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Locality": {
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "subZone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LocalityLbEndpoints": {
+      "properties": {
+        "locality": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Locality"
+        },
+        "lbEndpoints": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/LbEndpoint"
+          },
+          "type": "array"
+        },
+        "loadBalancingWeight": {
+          "$ref": "#/definitions/UInt32Value"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ManagedFieldsEntry": {
+      "properties": {
+        "manager": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "fieldsType": {
+          "type": "string"
+        },
+        "fieldsV1": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/FieldsV1"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ObjectMeta": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "generateName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "selfLink": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "resourceVersion": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer"
+        },
+        "creationTimestamp": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "deletionTimestamp": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "deletionGracePeriodSeconds": {
+          "type": "integer"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "annotations": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ownerReferences": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/OwnerReference"
+          },
+          "type": "array"
+        },
+        "finalizers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "managedFields": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ManagedFieldsEntry"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "OutlierDetection": {
+      "properties": {
+        "consecutive5Xx": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "interval": {
+          "$ref": "#/definitions/Duration"
+        },
+        "baseEjectionTime": {
+          "$ref": "#/definitions/Duration"
+        },
+        "maxEjectionPercent": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "enforcingConsecutive5Xx": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "enforcingSuccessRate": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "successRateMinimumHosts": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "successRateRequestVolume": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "successRateStdevFactor": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "consecutiveGatewayFailure": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "enforcingConsecutiveGatewayFailure": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "splitExternalLocalOriginErrors": {
+          "type": "boolean"
+        },
+        "consecutiveLocalOriginFailure": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "enforcingConsecutiveLocalOriginFailure": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "enforcingLocalOriginSuccessRate": {
+          "$ref": "#/definitions/UInt32Value"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "OwnerReference": {
+      "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "uid"
+      ],
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "controller": {
+          "type": "boolean"
+        },
+        "blockOwnerDeletion": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SslParameters": {
+      "properties": {
+        "minimumProtocolVersion": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "maximumProtocolVersion": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "cipherSuites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ecdhCurves": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "StringValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Struct": {
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/Value"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "UInt32Value": {
+      "properties": {
+        "value": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Upstream": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "metadata": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ObjectMeta"
+        },
+        "spec": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/UpstreamSpec"
+        },
+        "status": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/UpstreamStatus"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "UpstreamSpec": {
+      "required": [
+        "upstreamType"
+      ],
+      "properties": {
+        "discoveryMetadata": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/DiscoveryMetadata"
+        },
+        "sslConfig": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/UpstreamSslConfig"
+        },
+        "circuitBreakers": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CircuitBreakerConfig"
+        },
+        "loadBalancerConfig": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/LoadBalancerConfig"
+        },
+        "connectionConfig": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ConnectionConfig"
+        },
+        "healthChecks": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/HealthCheck"
+          },
+          "type": "array"
+        },
+        "outlierDetection": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/OutlierDetection"
+        },
+        "useHttp2": {
+          "$ref": "#/definitions/BoolValue"
+        },
+        "upstreamType": {
+          "additionalProperties": true
+        },
+        "failover": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Failover"
+        },
+        "initialStreamWindowSize": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "initialConnectionWindowSize": {
+          "$ref": "#/definitions/UInt32Value"
+        },
+        "httpProxyHostname": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/StringValue"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "UpstreamSslConfig": {
+      "required": [
+        "sslSecrets"
+      ],
+      "properties": {
+        "sslSecrets": {
+          "additionalProperties": true
+        },
+        "sni": {
+          "type": "string"
+        },
+        "verifySubjectAltName": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "parameters": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SslParameters"
+        },
+        "alpnProtocols": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "UpstreamStatus": {
+      "properties": {
+        "state": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "reportedBy": {
+          "type": "string"
+        },
+        "subresourceStatuses": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/UpstreamStatus"
+            }
+          },
+          "type": "object"
+        },
+        "details": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Struct"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Value": {
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

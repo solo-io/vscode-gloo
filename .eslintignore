@@ -1,0 +1,10 @@
+# don't ever lint node_modules
+node_modules
+# don't lint build output
+out
+# don't lint nyc coverage output
+coverage
+
+preview
+
+src/tekton-hub-client/

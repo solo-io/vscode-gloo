@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "out",
+    "moduleResolution": "node",
+    "lib": [
+      "es6"
+    ],
+    "sourceMap": true,
+    "rootDir": ".",
+    "strict": false,
+    "noUnusedLocals": false,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    ".vscode-test"
+  ],
+  "include": [
+    "src",
+    "test",
+    "build"
+  ]
+}

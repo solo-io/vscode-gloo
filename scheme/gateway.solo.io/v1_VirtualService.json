@@ -1,0 +1,1388 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/VirtualService",
+  "definitions": {
+    "Action": {
+      "properties": {
+        "actionType": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "customAction": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CustomAction"
+        },
+        "shadow": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "AuditLogging": {
+      "properties": {
+        "action": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "location": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "BoolValue": {
+      "properties": {
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "BufferPerRoute": {
+      "required": [
+        "override"
+      ],
+      "properties": {
+        "override": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Config": {
+      "properties": {
+        "actions": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Action"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CoreRuleSet": {
+      "required": [
+        "customSettingsType"
+      ],
+      "properties": {
+        "customSettingsType": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CorsPolicy": {
+      "properties": {
+        "allowOrigin": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "allowOriginRegex": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "allowMethods": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "allowHeaders": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "exposeHeaders": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "maxAge": {
+          "type": "string"
+        },
+        "allowCredentials": {
+          "type": "boolean"
+        },
+        "disableForRoute": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CsrfPolicy": {
+      "properties": {
+        "filterEnabled": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RuntimeFractionalPercent"
+        },
+        "shadowEnabled": {
+          "$ref": "#/definitions/RuntimeFractionalPercent"
+        },
+        "additionalOrigins": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/StringMatcher"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomAction": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "regex": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "maskChar": {
+          "type": "string"
+        },
+        "percent": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Percent"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Duration": {
+      "properties": {
+        "seconds": {
+          "type": "integer"
+        },
+        "nanos": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ExtAuthExtension": {
+      "required": [
+        "spec"
+      ],
+      "properties": {
+        "spec": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ExtensionSettings": {
+      "properties": {
+        "disable": {
+          "type": "boolean"
+        },
+        "policies": {
+          "patternProperties": {
+            ".*": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/Policy"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Extensions": {
+      "properties": {
+        "configs": {
+          "patternProperties": {
+            ".*": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/Struct"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FieldsV1": {
+      "properties": {},
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FloatValue": {
+      "properties": {
+        "value": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FractionalPercent": {
+      "properties": {
+        "numerator": {
+          "type": "integer"
+        },
+        "denominator": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "HashPolicy": {
+      "required": [
+        "keyType"
+      ],
+      "properties": {
+        "keyType": {
+          "additionalProperties": true
+        },
+        "terminal": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "HeaderManipulation": {
+      "properties": {
+        "requestHeadersToAdd": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/HeaderValueOption"
+          },
+          "type": "array"
+        },
+        "requestHeadersToRemove": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "responseHeadersToAdd": {
+          "items": {
+            "$ref": "#/definitions/HeaderValueOption"
+          },
+          "type": "array"
+        },
+        "responseHeadersToRemove": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "HeaderMatcher": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "regex": {
+          "type": "boolean"
+        },
+        "invertMatch": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "HeaderValueOption": {
+      "required": [
+        "headerOption"
+      ],
+      "properties": {
+        "headerOption": {
+          "additionalProperties": true
+        },
+        "append": {
+          "$ref": "#/definitions/BoolValue"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "IngressRateLimit": {
+      "properties": {
+        "authorizedLimits": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RateLimit"
+        },
+        "anonymousLimits": {
+          "$ref": "#/definitions/RateLimit"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "JWTPrincipal": {
+      "properties": {
+        "claims": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "provider": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ManagedFieldsEntry": {
+      "properties": {
+        "manager": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "fieldsType": {
+          "type": "string"
+        },
+        "fieldsV1": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/FieldsV1"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Matcher": {
+      "required": [
+        "pathSpecifier"
+      ],
+      "properties": {
+        "pathSpecifier": {
+          "additionalProperties": true
+        },
+        "caseSensitive": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/BoolValue"
+        },
+        "headers": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/HeaderMatcher"
+          },
+          "type": "array"
+        },
+        "queryParameters": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/QueryParameterMatcher"
+          },
+          "type": "array"
+        },
+        "methods": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ObjectMeta": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "generateName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "selfLink": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "resourceVersion": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer"
+        },
+        "creationTimestamp": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "deletionTimestamp": {
+          "type": "string",
+          "format": "data-time"
+        },
+        "deletionGracePeriodSeconds": {
+          "type": "integer"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "annotations": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ownerReferences": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/OwnerReference"
+          },
+          "type": "array"
+        },
+        "finalizers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "managedFields": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ManagedFieldsEntry"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "OwnerReference": {
+      "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "uid"
+      ],
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "controller": {
+          "type": "boolean"
+        },
+        "blockOwnerDeletion": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Percent": {
+      "properties": {
+        "value": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Permissions": {
+      "properties": {
+        "pathPrefix": {
+          "type": "string"
+        },
+        "methods": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Policy": {
+      "properties": {
+        "principals": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Principal"
+          },
+          "type": "array"
+        },
+        "permissions": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Permissions"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Principal": {
+      "properties": {
+        "jwtPrincipal": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/JWTPrincipal"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ProtocolUpgradeConfig": {
+      "required": [
+        "upgradeType"
+      ],
+      "properties": {
+        "upgradeType": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "QueryParameterMatcher": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "regex": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RateLimit": {
+      "properties": {
+        "unit": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "requestsPerUnit": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RequestMatch": {
+      "properties": {
+        "matcher": {
+          "$ref": "#/definitions/Matcher"
+        },
+        "clearRouteCache": {
+          "type": "boolean"
+        },
+        "requestTransformation": {
+          "$ref": "#/definitions/Transformation"
+        },
+        "responseTransformation": {
+          "$ref": "#/definitions/Transformation"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RequestResponseTransformations": {
+      "properties": {
+        "requestTransforms": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/RequestMatch"
+          },
+          "type": "array"
+        },
+        "responseTransforms": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ResponseMatch"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ResourceRef": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ResponseMatch": {
+      "properties": {
+        "matchers": {
+          "items": {
+            "$ref": "#/definitions/HeaderMatcher"
+          },
+          "type": "array"
+        },
+        "responseCodeDetails": {
+          "type": "string"
+        },
+        "responseTransformation": {
+          "$ref": "#/definitions/Transformation"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RetryPolicy": {
+      "properties": {
+        "retryOn": {
+          "type": "string"
+        },
+        "numRetries": {
+          "type": "integer"
+        },
+        "perTryTimeout": {
+          "$ref": "#/definitions/Duration"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Route": {
+      "required": [
+        "action"
+      ],
+      "properties": {
+        "matchers": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Matcher"
+          },
+          "type": "array"
+        },
+        "inheritableMatchers": {
+          "$ref": "#/definitions/BoolValue"
+        },
+        "inheritablePathMatchers": {
+          "$ref": "#/definitions/BoolValue"
+        },
+        "action": {
+          "additionalProperties": true
+        },
+        "options": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteOptions"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteAbort": {
+      "properties": {
+        "percentage": {
+          "type": "number"
+        },
+        "httpStatus": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteActionHashConfig": {
+      "properties": {
+        "hashPolicies": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/HashPolicy"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteDelay": {
+      "properties": {
+        "percentage": {
+          "type": "number"
+        },
+        "fixedDelay": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Duration"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteFaults": {
+      "properties": {
+        "abort": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteAbort"
+        },
+        "delay": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteDelay"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteOptions": {
+      "required": [
+        "hostRewriteType",
+        "rateLimitConfigType",
+        "jwtConfig"
+      ],
+      "properties": {
+        "transformations": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Transformations"
+        },
+        "faults": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteFaults"
+        },
+        "prefixRewrite": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/StringValue"
+        },
+        "timeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "retries": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RetryPolicy"
+        },
+        "extensions": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Extensions"
+        },
+        "tracing": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteTracingSettings"
+        },
+        "shadowing": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteShadowing"
+        },
+        "headerManipulation": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/HeaderManipulation"
+        },
+        "hostRewriteType": {
+          "additionalProperties": true
+        },
+        "cors": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CorsPolicy"
+        },
+        "lbHash": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RouteActionHashConfig"
+        },
+        "upgrades": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ProtocolUpgradeConfig"
+          },
+          "type": "array"
+        },
+        "ratelimitBasic": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/IngressRateLimit"
+        },
+        "rateLimitConfigType": {
+          "additionalProperties": true
+        },
+        "waf": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Settings"
+        },
+        "jwtConfig": {
+          "additionalProperties": true
+        },
+        "rbac": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ExtensionSettings"
+        },
+        "extauth": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ExtAuthExtension"
+        },
+        "dlp": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Config"
+        },
+        "bufferPerRoute": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/BufferPerRoute"
+        },
+        "csrf": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CsrfPolicy"
+        },
+        "stagedTransformations": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/TransformationStages"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteShadowing": {
+      "properties": {
+        "upstream": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ResourceRef"
+        },
+        "percentage": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouteTracingSettings": {
+      "properties": {
+        "routeDescriptor": {
+          "type": "string"
+        },
+        "tracePercentages": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/TracePercentages"
+        },
+        "propagate": {
+          "$ref": "#/definitions/BoolValue"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RuleSet": {
+      "properties": {
+        "ruleStr": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "directory": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RuntimeFractionalPercent": {
+      "properties": {
+        "defaultValue": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/FractionalPercent"
+        },
+        "runtimeKey": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Settings": {
+      "properties": {
+        "disabled": {
+          "type": "boolean"
+        },
+        "customInterventionMessage": {
+          "type": "string"
+        },
+        "coreRuleSet": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/CoreRuleSet"
+        },
+        "ruleSets": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/RuleSet"
+          },
+          "type": "array"
+        },
+        "auditLogging": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/AuditLogging"
+        },
+        "requestHeadersOnly": {
+          "type": "boolean"
+        },
+        "responseHeadersOnly": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SslConfig": {
+      "required": [
+        "sslSecrets"
+      ],
+      "properties": {
+        "sslSecrets": {
+          "additionalProperties": true
+        },
+        "sniDomains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verifySubjectAltName": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "parameters": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SslParameters"
+        },
+        "alpnProtocols": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "oneWayTls": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SslParameters": {
+      "properties": {
+        "minimumProtocolVersion": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "maximumProtocolVersion": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "cipherSuites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ecdhCurves": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Stats": {
+      "properties": {
+        "virtualClusters": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/VirtualCluster"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "StringMatcher": {
+      "required": [
+        "matchPattern"
+      ],
+      "properties": {
+        "matchPattern": {
+          "additionalProperties": true
+        },
+        "ignoreCase": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "StringValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Struct": {
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/Value"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TracePercentages": {
+      "properties": {
+        "clientSamplePercentage": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/FloatValue"
+        },
+        "randomSamplePercentage": {
+          "$ref": "#/definitions/FloatValue"
+        },
+        "overallSamplePercentage": {
+          "$ref": "#/definitions/FloatValue"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Transformation": {
+      "required": [
+        "transformationType"
+      ],
+      "properties": {
+        "transformationType": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TransformationStages": {
+      "properties": {
+        "early": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/RequestResponseTransformations"
+        },
+        "regular": {
+          "$ref": "#/definitions/RequestResponseTransformations"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Transformations": {
+      "properties": {
+        "requestTransformation": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Transformation"
+        },
+        "clearRouteCache": {
+          "type": "boolean"
+        },
+        "responseTransformation": {
+          "$ref": "#/definitions/Transformation"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Value": {
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualCluster": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualHost": {
+      "properties": {
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "routes": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/Route"
+          },
+          "type": "array"
+        },
+        "options": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/VirtualHostOptions"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualHostOptions": {
+      "required": [
+        "rateLimitConfigType",
+        "jwtConfig"
+      ],
+      "properties": {
+        "extensions": {
+          "$ref": "#/definitions/Extensions"
+        },
+        "retries": {
+          "$ref": "#/definitions/RetryPolicy"
+        },
+        "stats": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Stats"
+        },
+        "headerManipulation": {
+          "$ref": "#/definitions/HeaderManipulation"
+        },
+        "cors": {
+          "$ref": "#/definitions/CorsPolicy"
+        },
+        "transformations": {
+          "$ref": "#/definitions/Transformations"
+        },
+        "ratelimitBasic": {
+          "$ref": "#/definitions/IngressRateLimit"
+        },
+        "rateLimitConfigType": {
+          "additionalProperties": true
+        },
+        "waf": {
+          "$ref": "#/definitions/Settings"
+        },
+        "jwtConfig": {
+          "additionalProperties": true
+        },
+        "rbac": {
+          "$ref": "#/definitions/ExtensionSettings"
+        },
+        "extauth": {
+          "$ref": "#/definitions/ExtAuthExtension"
+        },
+        "dlp": {
+          "$ref": "#/definitions/Config"
+        },
+        "bufferPerRoute": {
+          "$ref": "#/definitions/BufferPerRoute"
+        },
+        "csrf": {
+          "$ref": "#/definitions/CsrfPolicy"
+        },
+        "includeRequestAttemptCount": {
+          "$ref": "#/definitions/BoolValue"
+        },
+        "includeAttemptCountInResponse": {
+          "$ref": "#/definitions/BoolValue"
+        },
+        "stagedTransformations": {
+          "$ref": "#/definitions/TransformationStages"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualService": {
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "metadata": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ObjectMeta"
+        },
+        "spec": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/VirtualServiceSpec"
+        },
+        "status": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/VirtualServiceStatus"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualServiceSpec": {
+      "properties": {
+        "virtualHost": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/VirtualHost"
+        },
+        "sslConfig": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SslConfig"
+        },
+        "displayName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VirtualServiceStatus": {
+      "properties": {
+        "state": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "reportedBy": {
+          "type": "string"
+        },
+        "subresourceStatuses": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/VirtualServiceStatus"
+            }
+          },
+          "type": "object"
+        },
+        "details": {
+          "$ref": "#/definitions/Struct"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}
