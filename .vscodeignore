@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+out/**
 node_modules/**
 src/**
 .gitignore
@@ -9,3 +10,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+!node_modules/vscode/**
+!node_modules/bufferutil/**
+!node_modules/cross-spawn/**
+!node_modules/utf-8-validate/**

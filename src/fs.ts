@@ -31,7 +31,7 @@ export const fs: FS = {
     (path: string, mode: string | number, cb: (err: NodeJS.ErrnoException) => void) =>
       sysfs.chmod(path, mode, cb)),
   existsSync: (path) => sysfs.existsSync(path),
-  readFile: (filename, encoding, callback) => sysfs.readFile(filename, encoding, callback),
+  readFile: (filename, encoding, callback) => sysfs.readFile(filename,JSON.parse(encoding), callback),
   readTextFile: promisify(
     (path: string, cb: (err: NodeJS.ErrnoException, data: string) => void) =>
       sysfs.readFile(path, { encoding: "utf8" }, cb)),

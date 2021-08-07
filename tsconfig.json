@@ -19,7 +19,7 @@
     "node_modules",
     ".vscode-test"
   ],
-  "include": [
+  "src":[
     "src",
     "test",
     "build"

@@ -30,7 +30,7 @@ export async function activate(
 
   const initDirsResult = await initPluginDirs(shell);
 
-  if (!initDirsResult){
+  if (initDirsResult){
     vscode.window.showErrorMessage(`Error activating extension ${initDirsResult}`);
     return;
   }

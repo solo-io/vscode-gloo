@@ -15,7 +15,7 @@ import { Platform, Shell } from "../shell";
 export async function initPluginDirs(shell:Shell): Promise<boolean> {
   const pluginDirs = path.join(shell.home(), ".vs-gloo","tools");
   const pluginDirsExist = fs.existsSync(pluginDirs);
-  if (pluginDirsExist) return pluginDirsExist;
+  if (pluginDirsExist) return !pluginDirsExist;
   const result = await fs.promises.mkdir(pluginDirs,{recursive: true});
   return result === undefined;
 }

@@ -5,6 +5,5 @@
     "jsx": "react",
     "lib": ["es2018", "DOM", "DOM.Iterable"]
   },
-  "include": ["./src"],
-  "exclude": ["./src/util"]
+  "include": ["./src"]
 }

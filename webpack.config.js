@@ -1,35 +1,32 @@
-/*-----------------------------------------------------------------------------------------------
- *  Copyright (c) Kamesh Sampath<kamesh.sampath@hotmail.com>. All rights reserved.
- *  Licensed under the MIT License. See LICENSE file in the project root for license information.
- *-----------------------------------------------------------------------------------------------*/
+/* eslint-disable header/header */
+
+//@ts-check
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const webpack = require('webpack');
 
-/**@type {import('webpack').Configuration}*/
 const config = {
-  target: 'node',
-  entry: './src/extension.ts',
+  target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
+	
+  mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
+
+  entry: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   output: {
-    path: path.resolve(__dirname, 'out'),
+    // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
+    path: path.resolve(__dirname, 'dist'),
     filename: 'extension.js',
     libraryTarget: 'commonjs2'
   },
-  devtool: 'inline-source-map',
+  devtool: 'nosources-source-map',
   externals: {
     vscode: 'commonjs vscode',
     bufferutil: 'commonjs bufferutil',
-    'spawn-sync': 'commonjs spawn-sync',
     'utf-8-validate': 'commonjs utf-8-validate'
   },
-  plugins: [
-    new webpack.IgnorePlugin(/^electron$/),
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
-  ],
   resolve: {
-    extensions: ['.ts', '.js', '.json']
+    extensions: ['.ts', '.js']
   },
   module: {
     rules: [
@@ -41,14 +38,6 @@ const config = {
             loader: 'ts-loader'
           }
         ]
-      },
-      {
-        test: /\.yaml$/,
-        use: ['file-loader']
-      },
-      {
-        test: /\.(jpe?g|png|svg?)(\?[a-z0-9=&.]+)?$/,
-        use: 'base64-inline-loader?limit=1000&name=[name].[ext]'
       }
     ]
   }

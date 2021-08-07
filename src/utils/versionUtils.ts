@@ -44,7 +44,7 @@ export async function getStableReleases(owner:string,repo:string): Promise<Error
 export async function cacheAndGetLatestRelease(owner:string,repo:string,releaseCacheFile:string):Promise<Errorable<string>> {
   let releases: string[];
   try {
-    const stats = await fs.promises.stat(releaseCacheFile,{throwIfNoEntry: false});
+    const stats = await fs.promises.stat(releaseCacheFile);
     //create or refresh cache
     if (refreshCache(stats)) {
       return await cacheAndGetRelease(releaseCacheFile,repo,owner);
