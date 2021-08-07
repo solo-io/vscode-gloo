@@ -7,14 +7,10 @@
       "label": "dev-watch",
       "type": "npm",
       "script": "watch",
-      "problemMatcher": [
-        "$ts-webpack-watch",
-        "$ts-checker-eslint-webpack-watch"
-      ],
+      "problemMatcher": "$tsc-watch",
       "isBackground": true,
       "presentation": {
-        "reveal": "never",
-        "revealProblems": "onProblem"
+        "reveal": "never"
       },
       "group": {
         "kind": "build",

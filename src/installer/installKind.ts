@@ -25,7 +25,7 @@ export async function installKind(shell: Shell, version: string | null): Promise
     version = versionRes.result;
   }
   const arch = platformArch(os);
-  const url = `https://github.com/kubernetes-sigs/kind/${version}/kind-${os}-${arch}`;
+  const url = `https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}`;
   const installFolder = getInstallFolder(shell, tool);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const executable = formatBin(tool, shell.platform())!;  // safe because we checked platform earlier

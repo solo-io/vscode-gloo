@@ -118,7 +118,7 @@ export class KindImpl implements Kind {
       );
       window.withProgress(
         {
-          title: `Creatating Kind cluster ${clusterName}`,
+          title: `Creating Kind cluster ${clusterName}`,
           location: ProgressLocation.Notification,
         },
         async () => {

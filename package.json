@@ -42,7 +42,7 @@
     "onLanguage:yaml",
     "onFileSystem:gloo"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -375,17 +375,14 @@
     "gloo"
   ],
   "scripts": {
-    "vscode:prepublish": "yarn run package",
+    "vscode:prepublish": "yarn run compile",
     "vscode:publish": "vsce publish",
-    "compile": "webpack",
-    "watch": "webpack --mode none --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "test-compile": "tsc -p ./",
-    "test-watch": "tsc -watch -p ./",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
     "pretest": "yarn run test-compile && yarn run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "clean": "rimraf dist",
+    "clean": "rimraf out",
     "build": "yarn run clean && yarn run lint && yarn run compile",
     "lint:fix": "eslint . --ext .ts --fix",
     "ext-test": "yarn run pretest && node ./out/src/test/runTest.js",
@@ -410,9 +407,7 @@
     "ts-loader": "^9.2.2",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.2",
-    "vscode-test": "^1.5.2",
-    "webpack": "^5.38.1",
-    "webpack-cli": "^4.7.0"
+    "vscode-test": "^1.5.2"
   },
   "dependencies": {
     "@kubernetes/client-node": "^0.15.0",
