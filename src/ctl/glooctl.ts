@@ -15,13 +15,12 @@ import { getStableGlooCtlVersion, installGlooctl } from "../installer/installGlo
 import { failed, succeeded } from "../errorable";
 import { asVersionNumber } from "../utils/versionUtils";
 import { GLOO_EDGE_SHARED_TERMINAL } from "../constants";
-import { getStderrString } from "../utils/stdUtil";
 import * as semver from "semver";
 import { WindowUtil } from "../utils/windowUtils";
 import path = require("path");
 import { checkGlooEdgeServerStatus } from "../utils/clusterChecks";
 import { GlooEdgeExplorer } from "../tree/glooEdgeExplorer";
-import { executeErrorableAction } from "../commands/progressableCommands";
+import { executeErrorableAction, executeWithProgress } from "../commands/progressableCommands";
 
 
 
@@ -30,8 +29,8 @@ export interface GlooCtl {
   execute(commandArgs:string[],cwd?:string,fail?:boolean,): Promise<CliExitData>
   about(): Promise<void>
   check(): Promise<void>
-  install(component?:string,licenseKey?:string,namespace?:string): Promise<boolean>
-  uninstall(component?:string,namespace?:string): Promise<boolean>
+  install(component?:string,licenseKey?:string,namespace?:string): Promise<void>
+  uninstall(component?:string,namespace?:string): Promise<void>
   checkPresent(mode: CheckPresentMode): Promise<boolean>;
   checkUpgradeAvailable(): void
   setExplorer(explorer: GlooEdgeExplorer)
@@ -48,14 +47,33 @@ export async function create(host: Host, fs: FS, shell: Shell): Promise<GlooCtl>
     binPath: `${GLOO_COMMAND}`,
   };
   const gotGlooctl = await checkPresent(context,CheckPresentMode.Silent);
+  context.binFound = gotGlooctl;
   if (!gotGlooctl){
-    const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
-    const actionPromise = installGlooctl(shell,undefined);
-    const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
-    const errorMessage = `Failed to update ${GLOO_COMMAND}`;
-    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+    alertAndInstall(context);
   }
   return new GlooCtlImpl(context);
+}
+
+async function alertAndInstall(context:Context):Promise<void>{
+  const message = `Could not find "${context.binPath}" binary.`;
+  return await context.host.showErrorMessage(message, `Install ${context.binPath}`, "Learn more").then(
+    async (str) => {
+      switch (str) {
+        case "Learn more":
+          context.host.showInformationMessage(`Add ${context.binPath} directory to path, or set "vscode-gloo.${context.binPath}-path" config to ${context.binPath} binary.`);
+          break;
+        case `Install ${context.binPath}`: {
+          const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
+          const actionPromise = installGlooctl(context.shell,undefined);
+          const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
+          const errorMessage = `Failed to update ${GLOO_COMMAND}`;
+          await executeErrorableAction(progressOptions,actionPromise,successMessage,errorMessage);
+          context.binFound = true;
+          break;
+        }
+      }
+    }
+  );
 }
 
 class GlooCtlImpl implements GlooCtl {
@@ -117,54 +135,65 @@ class GlooCtlImpl implements GlooCtl {
    * @param namespace 
    * @returns 
    */
-  async install(component = "gateway",edition?: string, licenseKey?: string,namespace?: string): Promise<boolean> {
+  async install(component = "gateway",edition?: string, licenseKey?: string,namespace?: string): Promise<void> {
     //Community or EE
     if (!edition){
       edition = getGlooEdgeEdition();
     }
-    const installTask = `Gloo ${edition} ${component}`;
-    return await vscode.window.withProgress({title: `Installing ${installTask}`,location: vscode.ProgressLocation.Notification}, async () => {
-      try {
-        const cmdArgs: string[] = new Array<string>("install");
-        cmdArgs.push(component?.toLocaleLowerCase());
-        cmdArgs.push(edition);
+    const progressOptions = {title: `Installing Gloo ${edition} ${component}`,location: vscode.ProgressLocation.Notification};
+    const successMessage = `Gloo ${edition} ${component} installed.`;
+    const errorMessage = `Gloo ${edition} ${component} failed.`;
 
-        //Namespace 
-        if (!namespace){
-          namespace = getDefaultGlooNamespace();
-        }
-        cmdArgs.push("--namespace");
-        cmdArgs.push(namespace);
+    const cmdArgs: string[] = new Array<string>("install");
+    cmdArgs.push(component?.toLocaleLowerCase());
+    cmdArgs.push(edition);
+
+    //Namespace 
+    if (!namespace){
+      namespace = getDefaultGlooNamespace();
+    }
+    cmdArgs.push("--namespace");
+    cmdArgs.push(namespace);
   
-        //License Key 
-        if (edition?.toLowerCase() === "ee") {
-          if (!licenseKey) {
-            cmdArgs.push("enterprise");
-            licenseKey = getGlooEdgeLicene();
-          } else {
-            cmdArgs.push("--license-key");
-            cmdArgs.push(licenseKey);
-          }
-        }
-        const command = await this.newGlooCommand(...cmdArgs);
-        const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
-        let message: string;
-
-        if (result.error){
-          message = `${installTask} installation failed: ${getStderrString(result.error)}`;
-          vscode.window.showWarningMessage(message);
-        } else {
-          message = `${installTask} installed.`;
-          vscode.window.showInformationMessage(message);
-          await checkGlooEdgeServerStatus(this);
-          this._explorer.refresh();
-          return true;
-        }
-      } catch (err){
-        vscode.window.showErrorMessage(err.toString());
+    //License Key 
+    if (edition?.toLowerCase() === "ee") {
+      if (!licenseKey) {
+        cmdArgs.push("enterprise");
+        licenseKey = getGlooEdgeLicene();
+      } else {
+        cmdArgs.push("--license-key");
+        cmdArgs.push(licenseKey);
       }
-      return false;
-    });
+    }
+    const command = await this.newGlooCommand(...cmdArgs);
+    const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
+   
+    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
+  }
+
+  /**
+   * 
+   * @param component 
+   * @returns 
+   */
+  async uninstall(component = "gateway",namespace?:string): Promise<void> {
+    const progressOptions = {title: `Uninstall Gloo ${component}`,location: vscode.ProgressLocation.Notification};
+    const successMessage = `Gloo ${component} uninstalled.`;
+    const errorMessage = `Gloo ${component} uninstall failed`;
+
+    const cmdArgs: string[] = new Array<string>("uninstall");
+    cmdArgs.push(component);
+    //Namespace 
+    if (!namespace){
+      namespace = getDefaultGlooNamespace();
+    }
+    cmdArgs.push("--namespace");
+    cmdArgs.push(namespace);
+
+    const command = await this.newGlooCommand(...cmdArgs);
+    const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
+   
+    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
   }
 
   /**
@@ -173,47 +202,11 @@ class GlooCtlImpl implements GlooCtl {
    * @returns 
    */
   async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
-    
+    if (!this.context.binFound){
+      alertAndInstall(this.context);
+    }
     return createCliCommand("glooctl", ...commandArgs);
   }
-
-  /**
-   * 
-   * @param component 
-   * @returns 
-   */
-  async uninstall(component = "gateway",namespace?:string): Promise<boolean> {
-    return await vscode.window.withProgress({title: `Uninstall Gloo ${component}`,location: vscode.ProgressLocation.Notification}, async () => {
-      try {
-        const cmdArgs: string[] = new Array<string>("uninstall");
-        cmdArgs.push(component);
-        //Namespace 
-        if (!namespace){
-          namespace = getDefaultGlooNamespace();
-        }
-        cmdArgs.push("--namespace");
-        cmdArgs.push(namespace);
-        const command = await this.newGlooCommand(...cmdArgs);
-        const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
-        let message: string;
-
-        if (result.error){
-          message = `Gloo ${component} uninstall failed: ${getStderrString(result.error)}`;
-          vscode.window.showWarningMessage(message);
-        } else {
-          message = `Gloo ${component} uninstalled.`;
-          await checkGlooEdgeServerStatus(this);
-          this._explorer.refresh();
-          vscode.window.showInformationMessage(message);
-          return true;
-        }
-      } catch (err){
-        vscode.window.showErrorMessage(err.toString());
-      }
-      return false;
-    });
-  }
-
   async executeInTerminal(command: CliCommand, opts: ExecOpts): Promise<void> {
     const toolLocation =  
                          path.dirname(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`));

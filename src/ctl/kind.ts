@@ -74,19 +74,37 @@ export async function create(
     binPath: `${COMMAND}`,
   };
   const gotKind = await checkPresent(context,CheckPresentMode.Silent);
+  context.binFound = gotKind;
   if (!gotKind) {
-    const progressOptions = {
-      title: `${COMMAND} not found installing...`,
-      location: ProgressLocation.Notification,
-    };
-    const successMessage = `Successfuly installed ${COMMAND}`;
-    const errorMessage = `Failed to update ${COMMAND}`;
-
-    const actionPromise = installKind(shell, undefined);
-
-    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+    alertAndInstall(context);
   }
   return new KindImpl(context,kubectl);
+}
+
+async function alertAndInstall(context:Context):Promise<void>{
+  const message = `Could not find "${context.binPath}" binary.`;
+
+  return await context.host.showErrorMessage(message, `Install ${context.binPath}`, "Learn more").then(
+    async (str) => {
+      switch (str) {
+        case "Learn more":
+          context.host.showInformationMessage(`Add ${context.binPath} directory to path, or set "vscode-gloo.${context.binPath}-path" config to ${context.binPath} binary.`);
+          break;
+        case `Install ${context.binPath}`: {
+          const progressOptions = {
+            title: `${COMMAND} not found installing...`,
+            location: ProgressLocation.Notification,
+          };
+          const successMessage = `Successfuly installed ${COMMAND}`;
+          const errorMessage = `Failed to update ${COMMAND}`;
+          const actionPromise = installKind(context.shell, undefined);
+          await executeErrorableAction(progressOptions,actionPromise,successMessage,errorMessage);
+          context.binFound = true;
+          break;
+        }
+      }
+    }
+  );
 }
 
 export class KindImpl implements Kind {
@@ -124,6 +142,16 @@ export class KindImpl implements Kind {
       }
     }
     try {
+      const commandArgs = [
+        "create",
+        "cluster",
+        "--name",
+        clusterName,
+        "--config",
+        kindConfig,
+      ];
+      const command = await this.newKindCommand(...commandArgs);
+
       console.debug(
         `Creating Cluster: ${clusterName} with config ${kindConfig}`
       );
@@ -140,24 +168,12 @@ export class KindImpl implements Kind {
 
       // the initial progress action 
       const actionPromise = this.execute(
-        [
-          "create",
-          "cluster",
-          "--name",
-          clusterName,
-          "--config",
-          kindConfig,
-        ],
+        command,
         undefined,
         false
       );
-
-      //promises that need to be resolved on succcess
-      const successPromises = [];
-      successPromises.push(checkClusterStatus());
-      successPromises.push(this._explorer.refresh());
       
-      await executeWithProgress(progressOptions, actionPromise,successMessage, successPromises, errorMessage,this.isCreated);
+      await executeWithProgress(progressOptions, actionPromise,successMessage, errorMessage,this.isCreated,checkClusterStatus(),this._explorer.refresh());
     } catch (err) {
       console.error(err);
     }
@@ -174,8 +190,10 @@ export class KindImpl implements Kind {
 
   async delete(): Promise<void> {
     try {
+      const commandArgs = ["get", "clusters"];
+      const command = await this.newKindCommand(...commandArgs);
       const kindClusterResult = await this.execute(
-        ["get", "clusters"],
+        command,
         undefined,
         false
       );
@@ -213,20 +231,17 @@ export class KindImpl implements Kind {
         title: `Deleting Kind cluster ${kindCluster}`,
         location: ProgressLocation.Notification,
       };
+      const commandArgs = ["delete", "cluster", "--name", kindCluster];
+      const command = await this.newKindCommand(...commandArgs);
       const actionPromise = this.execute(
-        ["delete", "cluster", "--name", kindCluster],
+        command,
         undefined,
         false
       );
       const successMessage = `Successfuly deleted Kind cluster ${kindCluster}`;
       const errorMessage = `Failed to delete kind cluster ${kindCluster}`;
       
-      //promises that need to be resolved on succcess
-      const successPromises = [];
-      successPromises.push(checkClusterStatus());
-      successPromises.push(this._explorer.refresh());
-
-      await executeWithProgress(progressOptions,actionPromise,successMessage,successPromises,errorMessage,this.isDeleted);
+      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,this.isDeleted,checkClusterStatus(),this._explorer.refresh());
     } catch (err) {
       console.error(err);
     }
@@ -236,12 +251,18 @@ export class KindImpl implements Kind {
     return checkPresent(this.context, mode);
   }
 
+  /**
+   * 
+   * @param command 
+   * @param cwd 
+   * @param fail 
+   * @returns 
+   */
   async execute(
-    commandArgs: string[],
+    command:CliCommand,
     cwd?: string,
     fail = true
   ): Promise<CliExitData> {
-    const command = await this.newKindCommand(...commandArgs);
     //console.debug(`Kind command::${cliCommandToString(command)}`);
     const toolLocation = getToolPath(
       this.context.host,
@@ -272,6 +293,9 @@ export class KindImpl implements Kind {
    * @returns
    */
   async newKindCommand(...commandArgs: string[]): Promise<CliCommand> {
+    if (!this.context.binFound){
+      await alertAndInstall(this.context);
+    }
     return createCliCommand(COMMAND, ...commandArgs);
   }
 

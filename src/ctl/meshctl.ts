@@ -18,9 +18,8 @@ import * as semver from "semver";
 import { GLOO_MESH_SHARED_TERMINAL } from "../constants";
 import path = require("path");
 import { WindowUtil } from "../utils/windowUtils";
-import { getStderrString } from "../utils/stdUtil";
 import { checkGlooMeshServerStatus } from "../utils/clusterChecks";
-import { executeErrorableAction } from "../commands/progressableCommands";
+import { executeErrorableAction, executeWithProgress } from "../commands/progressableCommands";
 
 interface ExecOpts{
   cwd: string 
@@ -33,8 +32,8 @@ export interface MeshCtl {
   execute(commandArgs:string[],cwd?:string,fail?:boolean): Promise<CliExitData>
   about(): void
   check(): void
-  install(edition?: string, licenseKey?: string,namespace?: string): Promise<boolean>
-  uninstall(namespace?:string): Promise<boolean>
+  install(edition?: string, licenseKey?: string,namespace?: string): Promise<void>
+  uninstall(namespace?:string): Promise<void>
   checkPresent(mode: CheckPresentMode): Promise<boolean>;
   checkUpgradeAvailable(): void
 }
@@ -43,18 +42,44 @@ export const GLOO_COMMAND = "meshctl";
 
 
 export async function create(host: Host, fs: FS, shell: Shell): Promise<MeshCtl> {
-  const context = { host: host, fs: fs, shell: shell, binFound: false, binPath: `${GLOO_COMMAND}` };
+  const context = { 
+    host: host, 
+    fs: fs, 
+    shell: shell,
+    binFound: false,
+    binPath: `${GLOO_COMMAND}` 
+  };
 
   const gotGlooMeshCtl = await checkPresent(context,CheckPresentMode.Silent);
+  context.binFound = gotGlooMeshCtl;
+
   if (!gotGlooMeshCtl){
-    const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
-    const actionPromise = installGlooMeshCtl(shell,undefined);
-    const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
-    const errorMessage = `Failed to update ${GLOO_COMMAND}`;
-    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+    alertAndInstall(context);
   }
       
   return new GlooMeshCtlImpl(context);
+}
+
+async function alertAndInstall(context:Context):Promise<void>{
+  const message = `Could not find "${context.binPath}" binary.`;
+  return await context.host.showErrorMessage(message, `Install ${context.binPath}`, "Learn more").then(
+    async (str) => {
+      switch (str) {
+        case "Learn more":
+          context.host.showInformationMessage(`Add ${context.binPath} directory to path, or set "vscode-gloo.${context.binPath}-path" config to ${context.binPath} binary.`);
+          break;
+        case `Install ${context.binPath}`: {
+          const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
+          const actionPromise = installGlooMeshCtl(context.shell,undefined);
+          const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
+          const errorMessage = `Failed to update ${GLOO_COMMAND}`;
+          await executeErrorableAction(progressOptions,actionPromise,successMessage,errorMessage);
+          context.binFound = true;
+          break;
+        }
+      }
+    }
+  );
 }
 
 class GlooMeshCtlImpl implements MeshCtl {
@@ -122,106 +147,82 @@ class GlooMeshCtlImpl implements MeshCtl {
    * @param namespace 
    * @returns 
    */
-    async install(edition?: string, licenseKey?: string,namespace?: string): Promise<boolean> {
+    async install(edition?: string, licenseKey?: string,namespace?: string): Promise<void> {
     //Community or EE
       if (!edition){
         edition = getGlooMeshEdition();
       }
-      const installTask = `Gloo Mesh ${edition}`;
-      return await vscode.window.withProgress({title: `Installing ${installTask}`,location: vscode.ProgressLocation.Notification}, async () => {
-        try {
-          const cmdArgs: string[] = new Array<string>("install");
-          cmdArgs.push(edition);
-
-          //Namespace 
-          if (!namespace){
-            namespace = getDefaultMeshNamespace();
-          }
-          cmdArgs.push("--namespace");
-          cmdArgs.push(namespace);
-  
-          //License Key 
-          if (edition?.toLowerCase() === "ee") {
-            if (!licenseKey) {
-              cmdArgs.push("enterprise");
-              licenseKey = getGlooMeshLicene();
-            } else {
-              cmdArgs.push("--license-key");
-              cmdArgs.push(licenseKey);
-            }
-          }
-          const command = await this.newGlooCommand(...cmdArgs);
-          const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,"meshctl"))});
-          let message: string;
-
-          if (result.error && result.error != null){
-            message = `${installTask} installation failed: ${getStderrString(result.error)}`;
-            vscode.window.showWarningMessage(message);
-          } else {
-            message = `${installTask} installed.`;
-            await checkGlooMeshServerStatus(this);
-            vscode.window.showInformationMessage(message);
-            return true;
-          }
-        } catch (err){
-          vscode.window.showErrorMessage(err.toString());
-        }
-        return false;
-      });
-    }
-
-    /**
-   * 
-   * @param commandArgs 
-   * @returns 
-   */
-    async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
+      const progressOptions = {title: `Installing Gloo Mesh ${edition}`,location: vscode.ProgressLocation.Notification};
+      const successMessage = `Gloo Mesh ${edition}`;
+      const errorMessage = `Gloo Mesh ${edition} installation failed.`;
       
-      return createCliCommand(`${GLOO_COMMAND}`, ...commandArgs);
-    }
+      const cmdArgs: string[] = new Array<string>("install");
+      cmdArgs.push(edition);
+
+      //Namespace 
+      if (!namespace){
+        namespace = getDefaultMeshNamespace();
+      }
+      cmdArgs.push("--namespace");
+      cmdArgs.push(namespace);
   
+      //License Key 
+      if (edition?.toLowerCase() === "ee") {
+        if (!licenseKey) {
+          cmdArgs.push("enterprise");
+          licenseKey = getGlooMeshLicene();
+        } else {
+          cmdArgs.push("--license-key");
+          cmdArgs.push(licenseKey);
+        }
+      }
+      const command = await this.newGlooCommand(...cmdArgs);
+      const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,"meshctl"))});
+      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooMeshServerStatus(this));
+
+    }
+
     /**
    * 
    * @param namespace 
    * @returns 
    */
-    async uninstall(namespace?:string): Promise<boolean> {
-      return await vscode.window.withProgress({title: "Uninstalling Gloo Mesh",location: vscode.ProgressLocation.Notification}, async () => {
-        try {
-          const cmdArgs: string[] = new Array<string>("uninstall");
+    async uninstall(namespace?:string): Promise<void> {
+      const progressOptions = {title: "Uninstalling Gloo Mesh",location: vscode.ProgressLocation.Notification};
+      const cmdArgs: string[] = new Array<string>("uninstall");
 
-          //Namespace 
-          if (!namespace){
-            namespace = getDefaultMeshNamespace();
-          }
-          cmdArgs.push("--namespace");
-          cmdArgs.push(namespace);
+      //Namespace 
+      if (!namespace){
+        namespace = getDefaultMeshNamespace();
+      }
+      cmdArgs.push("--namespace");
+      cmdArgs.push(namespace);
 
-          const command = await this.newGlooCommand(...cmdArgs);
-          const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND))});
-          let message: string;
+      const command = await this.newGlooCommand(...cmdArgs);
+      const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND))});
+      const successMesage = "Gloo Mesh uninstalled.";
+      const errorMessage = `Gloo Mesh uninstall failed`;
+      await executeWithProgress(progressOptions,actionPromise,successMesage,errorMessage,undefined,checkGlooMeshServerStatus(this));
+    }
+  
 
-          if (result.error && result.error != null){
-            message = `Gloo Mesh uninstall failed: ${getStderrString(result.error)}`;
-            vscode.window.showWarningMessage(message);
-          } else {
-            message = "Gloo Mesh uninstalled.";
-            await checkGlooMeshServerStatus(this);
-            vscode.window.showInformationMessage(message);
-            return true;
-          }
-        } catch (err){
-          vscode.window.showErrorMessage(err.toString());
-        }
-        return false;
-      });
+    /**
+     * 
+     * @param commandArgs 
+     * @returns 
+     */
+    async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
+      if (!this.context.binFound){
+        alertAndInstall(this.context);
+      }
+      return createCliCommand(`${GLOO_COMMAND}`, ...commandArgs);
     }
   
     /**
-   * 
-   * @param command 
-   * @param opts 
-   */
+    * 
+    * @param command 
+    * @param opts 
+    */
     async executeInTerminal(command: CliCommand, opts: ExecOpts): Promise<void> {
       const toolLocation =  
                          path.dirname(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND));
