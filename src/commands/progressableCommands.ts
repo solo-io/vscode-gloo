@@ -14,21 +14,35 @@ import { getStderrString } from '../utils/stdUtil';
  * @param successMessage 
  * @param errorMessage 
  * @param verifyActionFn 
+ * @param useErrStream 
+ * @param clusterName 
  * @param successPromises 
  * @returns 
  */
-export async function executeWithProgress(progressOptions: { title: string; location: ProgressLocation; }, actionPromise: Promise<CliExitData>, successMessage: string, errorMessage: string,verifyActionFn: (clusterName,stdOutOrErr) => boolean = alwaysTrue,...successPromises: any ) :Promise<Thenable<void>>{
+export async function executeWithProgress(progressOptions: { title: string; location: ProgressLocation; }, actionPromise: Promise<CliExitData>, successMessage: string, errorMessage: string,verifyActionFn: (clusterName,stdOutOrErr) => boolean = alwaysTrue,useErrStream = false,clusterName?:string,...successPromises: any ) :Promise<Thenable<void>>{
   return window.withProgress(progressOptions,
     async () => {
       let result: CliExitData;
       try {
         result = await actionPromise;
-        //kind returns all in error stream
-        if (result.error && verifyActionFn) {
+        //some programs return the stdout via stderr e.g. kind
+        if (useErrStream){
+          const stdErr = result.error;
+          if (verifyActionFn(clusterName,stdErr)){
+            window.showInformationMessage(successMessage);
+            await Promise.all(successPromises);
+            return;
+          } else {
+            window.showErrorMessage(
+              `${errorMessage} : ${getStderrString(result.error)}`
+            );
+            return;
+          }
+        }
+        if ( !useErrStream && result.error) {
           window.showErrorMessage(
             `${errorMessage} : ${getStderrString(result.error)}`
           );
-          return;
         } else {
           window.showInformationMessage(successMessage);
           await Promise.all(successPromises);
@@ -52,7 +66,7 @@ export async function executeWithProgress(progressOptions: { title: string; loca
  * @param successPromises 
  * @returns 
  */
-export async function executeErrorableAction(progressOptions: { title: string; location: ProgressLocation; }, actionPromise: Promise<Errorable<string[]>>, successMessage: string, errorMessage: string,verifyActionFn: (clusterName,stdOutOrErr) => boolean = alwaysTrue,...successPromises: any ) :Promise<void>{
+export async function executeErrorableAction(progressOptions: { title: string; location: ProgressLocation; }, actionPromise: Promise<Errorable<string[]>>, successMessage: string, errorMessage: string,verifyActionFn: (clusterName,stdOutOrErr: string ) => boolean = alwaysTrue,...successPromises: any ) :Promise<void>{
   return window.withProgress(progressOptions,
     async () => {
       let result: Errorable<string[]>;
@@ -69,7 +83,6 @@ export async function executeErrorableAction(progressOptions: { title: string; l
           if (successPromises && successPromises.length > 0){
             await Promise.all(successPromises);
           }
-         
         }
       } catch (err) {
         window.showErrorMessage(

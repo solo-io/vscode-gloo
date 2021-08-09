@@ -178,15 +178,14 @@ class GlooMeshCtlImpl implements MeshCtl {
       }
       const command = await this.newGlooCommand(...cmdArgs);
       const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,"meshctl"))});
-      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooMeshServerStatus(this));
+      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,false,undefined,checkGlooMeshServerStatus(this));
 
     }
 
     /**
-   * 
-   * @param namespace 
-   * @returns 
-   */
+     * 
+     * @param namespace 
+     */
     async uninstall(namespace?:string): Promise<void> {
       const progressOptions = {title: "Uninstalling Gloo Mesh",location: vscode.ProgressLocation.Notification};
       const cmdArgs: string[] = new Array<string>("uninstall");
@@ -202,7 +201,7 @@ class GlooMeshCtlImpl implements MeshCtl {
       const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND))});
       const successMesage = "Gloo Mesh uninstalled.";
       const errorMessage = `Gloo Mesh uninstall failed`;
-      await executeWithProgress(progressOptions,actionPromise,successMesage,errorMessage,undefined,checkGlooMeshServerStatus(this));
+      await executeWithProgress(progressOptions,actionPromise,successMesage,errorMessage,undefined,false,undefined,checkGlooMeshServerStatus(this));
     }
   
 

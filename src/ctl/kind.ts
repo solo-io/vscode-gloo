@@ -173,7 +173,7 @@ export class KindImpl implements Kind {
         false
       );
       
-      await executeWithProgress(progressOptions, actionPromise,successMessage, errorMessage,this.isCreated,checkClusterStatus(),this._explorer.refresh());
+      await executeWithProgress(progressOptions, actionPromise,successMessage, errorMessage,this.isCreated,true,clusterName,checkClusterStatus(),this._explorer.refresh());
     } catch (err) {
       console.error(err);
     }
@@ -241,7 +241,7 @@ export class KindImpl implements Kind {
       const successMessage = `Successfuly deleted Kind cluster ${kindCluster}`;
       const errorMessage = `Failed to delete kind cluster ${kindCluster}`;
       
-      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,this.isDeleted,checkClusterStatus(),this._explorer.refresh());
+      await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,this.isDeleted,true,kindCluster,checkClusterStatus(),this._explorer.refresh());
     } catch (err) {
       console.error(err);
     }

@@ -168,7 +168,7 @@ class GlooCtlImpl implements GlooCtl {
     const command = await this.newGlooCommand(...cmdArgs);
     const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
    
-    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
+    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,false,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
   }
 
   /**
@@ -193,7 +193,7 @@ class GlooCtlImpl implements GlooCtl {
     const command = await this.newGlooCommand(...cmdArgs);
     const actionPromise = cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`))});
    
-    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
+    await executeWithProgress(progressOptions,actionPromise,successMessage,errorMessage,undefined,false,undefined,checkGlooEdgeServerStatus(this),this._explorer.refresh());
   }
 
   /**
