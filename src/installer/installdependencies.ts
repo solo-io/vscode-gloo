@@ -22,8 +22,8 @@ import * as k8s from "vscode-kubernetes-tools-api";
 export async function installDependencies(): Promise<void> {
   const kubectl = await k8s.extension.kubectl.v1;
   if (kubectl.available){
-    const glooctl = GlooCtl(host, fs, shell,kubectl);
-    const meshctl = GlooMeshCtl(host, fs, shell,kubectl);
+    const glooctl = await GlooCtl(host, fs, shell);
+    const meshctl = await GlooMeshCtl(host, fs, shell);
     const gotGlooCtl = await glooctl.checkPresent(CheckPresentMode.Silent);
     const gotGlooMeshCtl = await meshctl.checkPresent(CheckPresentMode.Silent);
 
@@ -43,7 +43,7 @@ export async function installDependencies(): Promise<void> {
   }
 }
 
-async function installDependency(name: string, alreadyGot: boolean, installFunc: (shell: Shell) => Promise<Errorable<null>>): Promise<void> {
+async function installDependency(name: string, alreadyGot: boolean, installFunc: (shell: Shell) => Promise<Errorable<string[]>>): Promise<void> {
   if (alreadyGot) {
     glooChannel.showOutput(`Already got ${name}...`);
   } else {

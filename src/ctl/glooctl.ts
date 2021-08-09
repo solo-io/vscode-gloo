@@ -19,10 +19,9 @@ import { getStderrString } from "../utils/stdUtil";
 import * as semver from "semver";
 import { WindowUtil } from "../utils/windowUtils";
 import path = require("path");
-import * as k8s from "vscode-kubernetes-tools-api";
 import { checkGlooEdgeServerStatus } from "../utils/clusterChecks";
 import { GlooEdgeExplorer } from "../tree/glooEdgeExplorer";
-import * as _ from "lodash";
+import { executeErrorableAction } from "../commands/progressableCommands";
 
 
 
@@ -40,18 +39,34 @@ export interface GlooCtl {
 
 const GLOO_COMMAND = "glooctl";
 
-export function create(host: Host, fs: FS, shell: Shell,kubectl: k8s.API<k8s.KubectlV1>): GlooCtl {
-  return new GlooCtlImpl(host, fs, shell, false,kubectl);
+export async function create(host: Host, fs: FS, shell: Shell): Promise<GlooCtl> {
+  const context = {
+    host: host,
+    fs: fs,
+    shell: shell,
+    binFound: false,
+    binPath: `${GLOO_COMMAND}`,
+  };
+  const gotGlooctl = await checkPresent(context,CheckPresentMode.Silent);
+  if (!gotGlooctl){
+    const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
+    const actionPromise = installGlooctl(shell,undefined);
+    const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
+    const errorMessage = `Failed to update ${GLOO_COMMAND}`;
+    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+  }
+  return new GlooCtlImpl(context);
 }
 
 class GlooCtlImpl implements GlooCtl {
 
-  private readonly context: Context;
   private sharedTerminal: vscode.Terminal | null = null;
   private _explorer: GlooEdgeExplorer
   
-  constructor(host: Host, fs: FS, shell: Shell, toolFound: boolean,private readonly kubectl: k8s.API<k8s.KubectlV1>) {
-    this.context = { host: host, fs: fs, shell: shell, binFound: toolFound, binPath: `${GLOO_COMMAND}` };
+  constructor(
+    private readonly context: Context
+  ) {
+    this.context = context;
   }
 
   setExplorer(explorer: GlooEdgeExplorer): void{
@@ -158,17 +173,7 @@ class GlooCtlImpl implements GlooCtl {
    * @returns 
    */
   async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
-    const gotGlooctl = await checkPresent(this.context,CheckPresentMode.Silent);
-    if (!gotGlooctl){
-      await vscode.window.withProgress({title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification}, async () =>{
-        const result = await installGlooctl(this.context.shell,undefined);
-        if (failed(result)) {
-          vscode.window.showErrorMessage(`Failed to update ${GLOO_COMMAND}: ${result.error}`);
-        } else if (succeeded(result)){
-          vscode.window.showInformationMessage(`Successfuly installed ${GLOO_COMMAND}`);
-        }
-      });
-    }
+    
     return createCliCommand("glooctl", ...commandArgs);
   }
 

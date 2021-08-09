@@ -16,7 +16,7 @@ import { GlooEdgeExplorer } from "./tree/glooEdgeExplorer";
 import { checkClusterStatus } from "./utils/clusterChecks";
 import { glooVfsProvider, GLOO_RESOURCE_SCHEME } from "./utils/glooVfsPovider";
 import { GlooItem } from "./glooItem";
-import { Kind } from "./kind/kind";
+import { create as Kind } from "./ctl/kind";
 import { initPluginDirs } from "./installer/installationlayout";
 
 export let contextGlobalState: vscode.ExtensionContext;
@@ -37,14 +37,14 @@ export async function activate(
 
   const kubectl = await k8s.extension.kubectl.v1;
 
-  const glooctl = GlooCtl(host, fs, shell, kubectl);
+  const glooctl = await GlooCtl(host, fs, shell);
   glooctl.checkUpgradeAvailable();
-  const meshctl = GlooMeshCtl(host, fs, shell, kubectl);
+  const meshctl = await GlooMeshCtl(host, fs, shell);
   meshctl.checkUpgradeAvailable();
 
   const glooEdgeExplorer = new GlooEdgeExplorer(glooctl);
 
-  const kind = Kind(host, fs, shell, kubectl);
+  const kind = await Kind(host, fs, shell, kubectl);
   kind.checkUpgradeAvailable();
   kind.setExplorer(glooEdgeExplorer);
 

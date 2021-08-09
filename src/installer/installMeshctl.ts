@@ -11,7 +11,7 @@ import { addPathToConfig, toolPathBaseKey, toolPathOSKey } from "../config/confi
 import { getInstallFolder, platformUrlString, formatBin, platformArch, baseInstallFolder } from "./installationlayout";
 import { cacheAndGetLatestRelease } from "../utils/versionUtils";
 
-export async function installGlooMeshCtl(shell: Shell, version: string | null): Promise<Errorable<null>> {
+export async function installGlooMeshCtl(shell: Shell, version: string | null): Promise<Errorable<string[]>> {
   const tool = "meshctl";
   const os = platformUrlString(shell.platform());
   if (!os) {
@@ -26,7 +26,6 @@ export async function installGlooMeshCtl(shell: Shell, version: string | null): 
   }
   const arch = platformArch(os);
   const exe = (shell.isWindows() ? ".exe" : "");
-  //https://github.com/solo-io/gloo/releases/download/v1.9.0-beta6/glooctl-darwin-amd64
   const url = `https://github.com/solo-io/gloo-mesh/releases/download/${version}/meshctl-${os}-${arch}${exe}`;
   const installFolder = getInstallFolder(shell, tool);
   const executable = formatBin(tool, shell.platform())!;  // safe because we checked platform earlier

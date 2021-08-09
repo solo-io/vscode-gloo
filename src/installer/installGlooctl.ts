@@ -11,7 +11,7 @@ import { addPathToConfig, toolPathBaseKey, toolPathOSKey } from "../config/confi
 import { getInstallFolder, platformUrlString, formatBin, platformArch, baseInstallFolder } from "./installationlayout";
 import { cacheAndGetLatestRelease} from "../utils/versionUtils";
 
-export async function installGlooctl(shell: Shell, version: string | null): Promise<Errorable<null>> {
+export async function installGlooctl(shell: Shell, version: string | null): Promise<Errorable<string[]>> {
   const tool = "glooctl";
   const os = platformUrlString(shell.platform());
   if (!os) {

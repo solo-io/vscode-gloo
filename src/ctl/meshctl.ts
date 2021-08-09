@@ -19,9 +19,8 @@ import { GLOO_MESH_SHARED_TERMINAL } from "../constants";
 import path = require("path");
 import { WindowUtil } from "../utils/windowUtils";
 import { getStderrString } from "../utils/stdUtil";
-import * as k8s from "vscode-kubernetes-tools-api";
 import { checkGlooMeshServerStatus } from "../utils/clusterChecks";
-import { GlooEdgeExplorer } from "../tree/glooEdgeExplorer";
+import { executeErrorableAction } from "../commands/progressableCommands";
 
 interface ExecOpts{
   cwd: string 
@@ -40,224 +39,225 @@ export interface MeshCtl {
   checkUpgradeAvailable(): void
 }
 
-export function create(host: Host, fs: FS, shell: Shell,kubectl: k8s.API<k8s.KubectlV1>): MeshCtl {
-  return new GlooMeshCtlImpl(host, fs, shell, false,kubectl);
-}
-
 export const GLOO_COMMAND = "meshctl";
+
+
+export async function create(host: Host, fs: FS, shell: Shell): Promise<MeshCtl> {
+  const context = { host: host, fs: fs, shell: shell, binFound: false, binPath: `${GLOO_COMMAND}` };
+
+  const gotGlooMeshCtl = await checkPresent(context,CheckPresentMode.Silent);
+  if (!gotGlooMeshCtl){
+    const progressOptions = {title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification};
+    const actionPromise = installGlooMeshCtl(shell,undefined);
+    const successMessage = `Successfuly installed ${GLOO_COMMAND}`;
+    const errorMessage = `Failed to update ${GLOO_COMMAND}`;
+    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+  }
+      
+  return new GlooMeshCtlImpl(context);
+}
 
 class GlooMeshCtlImpl implements MeshCtl {
 
-  private readonly context: Context;
-  private sharedTerminal: vscode.Terminal
+    private sharedTerminal: vscode.Terminal
 
-  constructor(host: Host, fs: FS, shell: Shell, toolFound: boolean,private readonly kubectl: k8s.API<k8s.KubectlV1>) {
-    this.context = { host: host, fs: fs, shell: shell, binFound: toolFound, binPath: `${GLOO_COMMAND}` };
-  }
+    constructor(private readonly context: Context) {
+      this.context = context;
+    }
 
-  /**
+    /**
    * 
    */
-  async about(): Promise<void> {
-    const command = await this.newGlooCommand("version");
-    await this.executeInTerminal(command,{cwd: process.cwd(),name: GLOO_MESH_SHARED_TERMINAL,shared: true});
-  }
+    async about(): Promise<void> {
+      const command = await this.newGlooCommand("version");
+      await this.executeInTerminal(command,{cwd: process.cwd(),name: GLOO_MESH_SHARED_TERMINAL,shared: true});
+    }
 
-  /**
+    /**
    * 
    */
-  async check(): Promise<void> {
-    const command = await this.newGlooCommand("check");
-    await this.executeInTerminal(command,{cwd: process.cwd(),name: GLOO_MESH_SHARED_TERMINAL,shared: true});
-  }
+    async check(): Promise<void> {
+      const command = await this.newGlooCommand("check");
+      await this.executeInTerminal(command,{cwd: process.cwd(),name: GLOO_MESH_SHARED_TERMINAL,shared: true});
+    }
 
-  /**
+    /**
    * 
    * @param mode 
    * @returns 
    */
-  checkPresent(mode: CheckPresentMode): Promise<boolean> {
-    return checkPresent(this.context,mode);
-  }
+    checkPresent(mode: CheckPresentMode): Promise<boolean> {
+      return checkPresent(this.context,mode);
+    }
   
-  /**
+    /**
    * 
    */
-  checkUpgradeAvailable(): void {
-    meshUpgradeAvailable(this.context);
-  }
+    checkUpgradeAvailable(): void {
+      meshUpgradeAvailable(this.context);
+    }
 
-  /**
+    /**
    * 
    * @param commandArgs 
    * @returns 
    */
-  async execute(commandArgs:string[],cwd?:string,fail = true): Promise<CliExitData> {
-    const command = await this.newGlooCommand(...commandArgs);
-    const toolLocation = getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`);
-    if (toolLocation) {
+    async execute(commandArgs:string[],cwd?:string,fail = true): Promise<CliExitData> {
+      const command = await this.newGlooCommand(...commandArgs);
+      const toolLocation = getToolPath(this.context.host,this.context.shell,`${GLOO_COMMAND}`);
+      if (toolLocation) {
       // eslint-disable-next-line require-atomic-updates
-      command.cliCommand = command.cliCommand.replace(`${GLOO_COMMAND}`, `"${toolLocation}"`).replace(new RegExp(`&& ${GLOO_COMMAND}`, "g"), `&& "${toolLocation}"`);
+        command.cliCommand = command.cliCommand.replace(`${GLOO_COMMAND}`, `"${toolLocation}"`).replace(new RegExp(`&& ${GLOO_COMMAND}`, "g"), `&& "${toolLocation}"`);
+      }
+
+      return cli.execute(command, cwd ? { cwd } : {})
+        .then(async (result) => result.error && fail ? Promise.reject(result.error) : result)
+        .catch((err) => fail ? Promise.reject(err) : Promise.resolve({ error: null, stdout: "", stderr: "" }));
     }
 
-    return cli.execute(command, cwd ? { cwd } : {})
-      .then(async (result) => result.error && fail ? Promise.reject(result.error) : result)
-      .catch((err) => fail ? Promise.reject(err) : Promise.resolve({ error: null, stdout: "", stderr: "" }));
-  }
-
-  /**
+    /**
    * 
    * @param edition 
    * @param licenseKey 
    * @param namespace 
    * @returns 
    */
-  async install(edition?: string, licenseKey?: string,namespace?: string): Promise<boolean> {
+    async install(edition?: string, licenseKey?: string,namespace?: string): Promise<boolean> {
     //Community or EE
-    if (!edition){
-      edition = getGlooMeshEdition();
-    }
-    const installTask = `Gloo Mesh ${edition}`;
-    return await vscode.window.withProgress({title: `Installing ${installTask}`,location: vscode.ProgressLocation.Notification}, async () => {
-      try {
-        const cmdArgs: string[] = new Array<string>("install");
-        cmdArgs.push(edition);
-
-        //Namespace 
-        if (!namespace){
-          namespace = getDefaultMeshNamespace();
-        }
-        cmdArgs.push("--namespace");
-        cmdArgs.push(namespace);
-  
-        //License Key 
-        if (edition?.toLowerCase() === "ee") {
-          if (!licenseKey) {
-            cmdArgs.push("enterprise");
-            licenseKey = getGlooMeshLicene();
-          } else {
-            cmdArgs.push("--license-key");
-            cmdArgs.push(licenseKey);
-          }
-        }
-        const command = await this.newGlooCommand(...cmdArgs);
-        const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,"meshctl"))});
-        let message: string;
-
-        if (result.error && result.error != null){
-          message = `${installTask} installation failed: ${getStderrString(result.error)}`;
-          vscode.window.showWarningMessage(message);
-        } else {
-          message = `${installTask} installed.`;
-          await checkGlooMeshServerStatus(this);
-          vscode.window.showInformationMessage(message);
-          return true;
-        }
-      } catch (err){
-        vscode.window.showErrorMessage(err.toString());
+      if (!edition){
+        edition = getGlooMeshEdition();
       }
-      return false;
-    });
-  }
+      const installTask = `Gloo Mesh ${edition}`;
+      return await vscode.window.withProgress({title: `Installing ${installTask}`,location: vscode.ProgressLocation.Notification}, async () => {
+        try {
+          const cmdArgs: string[] = new Array<string>("install");
+          cmdArgs.push(edition);
 
-  /**
+          //Namespace 
+          if (!namespace){
+            namespace = getDefaultMeshNamespace();
+          }
+          cmdArgs.push("--namespace");
+          cmdArgs.push(namespace);
+  
+          //License Key 
+          if (edition?.toLowerCase() === "ee") {
+            if (!licenseKey) {
+              cmdArgs.push("enterprise");
+              licenseKey = getGlooMeshLicene();
+            } else {
+              cmdArgs.push("--license-key");
+              cmdArgs.push(licenseKey);
+            }
+          }
+          const command = await this.newGlooCommand(...cmdArgs);
+          const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,"meshctl"))});
+          let message: string;
+
+          if (result.error && result.error != null){
+            message = `${installTask} installation failed: ${getStderrString(result.error)}`;
+            vscode.window.showWarningMessage(message);
+          } else {
+            message = `${installTask} installed.`;
+            await checkGlooMeshServerStatus(this);
+            vscode.window.showInformationMessage(message);
+            return true;
+          }
+        } catch (err){
+          vscode.window.showErrorMessage(err.toString());
+        }
+        return false;
+      });
+    }
+
+    /**
    * 
    * @param commandArgs 
    * @returns 
    */
-  async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
-    const gotGlooMeshCtl = await checkPresent(this.context,CheckPresentMode.Silent);
-    if (!gotGlooMeshCtl){
-      await vscode.window.withProgress({title: `${GLOO_COMMAND} not found installing...`,location: vscode.ProgressLocation.Notification}, async () =>{
-        const result = await installGlooMeshCtl(this.context.shell,undefined);
-        if (failed(result)) {
-          vscode.window.showErrorMessage(`Failed to update ${GLOO_COMMAND}: ${result.error}`);
-        } else if (succeeded(result)){
-          vscode.window.showInformationMessage(`Successfuly installed ${GLOO_COMMAND}`);
-        }
-      });
+    async newGlooCommand(...commandArgs: string[]): Promise<CliCommand> {
+      
+      return createCliCommand(`${GLOO_COMMAND}`, ...commandArgs);
     }
-    return createCliCommand(`${GLOO_COMMAND}`, ...commandArgs);
-  }
   
-  /**
+    /**
    * 
    * @param namespace 
    * @returns 
    */
-  async uninstall(namespace?:string): Promise<boolean> {
-    return await vscode.window.withProgress({title: "Uninstalling Gloo Mesh",location: vscode.ProgressLocation.Notification}, async () => {
-      try {
-        const cmdArgs: string[] = new Array<string>("uninstall");
+    async uninstall(namespace?:string): Promise<boolean> {
+      return await vscode.window.withProgress({title: "Uninstalling Gloo Mesh",location: vscode.ProgressLocation.Notification}, async () => {
+        try {
+          const cmdArgs: string[] = new Array<string>("uninstall");
 
-        //Namespace 
-        if (!namespace){
-          namespace = getDefaultMeshNamespace();
+          //Namespace 
+          if (!namespace){
+            namespace = getDefaultMeshNamespace();
+          }
+          cmdArgs.push("--namespace");
+          cmdArgs.push(namespace);
+
+          const command = await this.newGlooCommand(...cmdArgs);
+          const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND))});
+          let message: string;
+
+          if (result.error && result.error != null){
+            message = `Gloo Mesh uninstall failed: ${getStderrString(result.error)}`;
+            vscode.window.showWarningMessage(message);
+          } else {
+            message = "Gloo Mesh uninstalled.";
+            await checkGlooMeshServerStatus(this);
+            vscode.window.showInformationMessage(message);
+            return true;
+          }
+        } catch (err){
+          vscode.window.showErrorMessage(err.toString());
         }
-        cmdArgs.push("--namespace");
-        cmdArgs.push(namespace);
-
-        const command = await this.newGlooCommand(...cmdArgs);
-        const result: CliExitData = await cli.execute(command,{env:addToolPathToEnv(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND))});
-        let message: string;
-
-        if (result.error && result.error != null){
-          message = `Gloo Mesh uninstall failed: ${getStderrString(result.error)}`;
-          vscode.window.showWarningMessage(message);
-        } else {
-          message = "Gloo Mesh uninstalled.";
-          await checkGlooMeshServerStatus(this);
-          vscode.window.showInformationMessage(message);
-          return true;
-        }
-      } catch (err){
-        vscode.window.showErrorMessage(err.toString());
-      }
-      return false;
-    });
-  }
+        return false;
+      });
+    }
   
-  /**
+    /**
    * 
    * @param command 
    * @param opts 
    */
-  async executeInTerminal(command: CliCommand, opts: ExecOpts): Promise<void> {
-    const toolLocation =  
+    async executeInTerminal(command: CliCommand, opts: ExecOpts): Promise<void> {
+      const toolLocation =  
                          path.dirname(getToolPath(this.context.host,this.context.shell,GLOO_COMMAND));
-    let terminal: vscode.Terminal;
-    if (!opts.shared){
-      terminal = WindowUtil.createTerminal(opts.name, opts.cwd, toolLocation);
-    } else {
-      terminal = this.getSharedTerminal(toolLocation);
-    }
+      let terminal: vscode.Terminal;
+      if (!opts.shared){
+        terminal = WindowUtil.createTerminal(opts.name, opts.cwd, toolLocation);
+      } else {
+        terminal = this.getSharedTerminal(toolLocation);
+      }
     
-    terminal.sendText(cliCommandToString(command), true);
-    terminal.show();
-  }
+      terminal.sendText(cliCommandToString(command), true);
+      terminal.show();
+    }
 
-  /**
+    /**
    * 
    * @param toolLocation 
    * @returns 
    */
-  getSharedTerminal(toolLocation: string): vscode.Terminal {
-    if (!this.sharedTerminal) {
-      this.sharedTerminal = WindowUtil.createTerminal(GLOO_MESH_SHARED_TERMINAL, process.cwd(), toolLocation);
-      const disposable = this.context.host.onDidCloseTerminal((terminal) => {
-        if (terminal === this.sharedTerminal) {
-          this.sharedTerminal = null;
-          disposable.dispose();
-        }
-      });
-      this.context.host.onDidChangeConfiguration((change) => {
-        if (affectsUs(change) && this.sharedTerminal) {
-          this.sharedTerminal.dispose();
-        }
-      });
+    getSharedTerminal(toolLocation: string): vscode.Terminal {
+      if (!this.sharedTerminal) {
+        this.sharedTerminal = WindowUtil.createTerminal(GLOO_MESH_SHARED_TERMINAL, process.cwd(), toolLocation);
+        const disposable = this.context.host.onDidCloseTerminal((terminal) => {
+          if (terminal === this.sharedTerminal) {
+            this.sharedTerminal = null;
+            disposable.dispose();
+          }
+        });
+        this.context.host.onDidChangeConfiguration((change) => {
+          if (affectsUs(change) && this.sharedTerminal) {
+            this.sharedTerminal.dispose();
+          }
+        });
+      }
+      return this.sharedTerminal;
     }
-    return this.sharedTerminal;
-  }
 }
 
 /**

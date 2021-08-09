@@ -16,7 +16,7 @@ import {
   Context,
   ExecOpts,
   ToolVersionInfo,
-} from "../ctl/ctl";
+} from "./ctl";
 import { Host } from "../host";
 import { FS } from "../fs";
 import { Shell } from "../shell";
@@ -36,6 +36,7 @@ import { asVersionNumber } from "../utils/versionUtils";
 import * as semver from "semver";
 import { GlooEdgeExplorer } from "../tree/glooEdgeExplorer";
 import { checkClusterStatus } from "../utils/clusterChecks";
+import { executeErrorableAction, executeWithProgress } from "../commands/progressableCommands";
 
 const COMMAND = "kind";
 
@@ -59,34 +60,44 @@ export interface Kind {
   setExplorer(explorer: GlooEdgeExplorer);
 }
 
-export function Kind(
+export async function create(
   host: Host,
   fs: FS,
   shell: Shell,
   kubectl: k8s.API<k8s.KubectlV1>
-): Kind {
-  return new KindImpl(host, fs, shell, false, kubectl);
+): Promise<Kind> {
+  const context = {
+    host: host,
+    fs: fs,
+    shell: shell,
+    binFound: false,
+    binPath: `${COMMAND}`,
+  };
+  const gotKind = await checkPresent(context,CheckPresentMode.Silent);
+  if (!gotKind) {
+    const progressOptions = {
+      title: `${COMMAND} not found installing...`,
+      location: ProgressLocation.Notification,
+    };
+    const successMessage = `Successfuly installed ${COMMAND}`;
+    const errorMessage = `Failed to update ${COMMAND}`;
+
+    const actionPromise = installKind(shell, undefined);
+
+    await executeErrorableAction(progressOptions,actionPromise,successMessage,[],errorMessage);
+  }
+  return new KindImpl(context,kubectl);
 }
 
 export class KindImpl implements Kind {
-  private readonly context: Context;
   private sharedTerminal: Terminal | null = null;
   private _explorer: GlooEdgeExplorer;
 
   constructor(
-    host: Host,
-    fs: FS,
-    shell: Shell,
-    toolFound: boolean,
+    private readonly context: Context,
     private readonly kubectl: k8s.API<k8s.KubectlV1>
   ) {
-    this.context = {
-      host: host,
-      fs: fs,
-      shell: shell,
-      binFound: toolFound,
-      binPath: `${COMMAND}`,
-    };
+    this.context = context;
   }
 
   setExplorer(explorer: GlooEdgeExplorer): void {
@@ -116,46 +127,37 @@ export class KindImpl implements Kind {
       console.debug(
         `Creating Cluster: ${clusterName} with config ${kindConfig}`
       );
-      window.withProgress(
-        {
-          title: `Creating Kind cluster ${clusterName}`,
-          location: ProgressLocation.Notification,
-        },
-        async () => {
-          let result;
-          try {
-            result = await this.execute(
-              [
-                "create",
-                "cluster",
-                "--name",
-                clusterName,
-                "--config",
-                kindConfig,
-              ],
-              undefined,
-              false
-            );
-            //kind returns all in error stream
-            if (result.error && this.isCreated(clusterName, result.error)) {
-              window.showInformationMessage(
-                `Successfuly created Kind cluster ${clusterName}`
-              );
-              await checkClusterStatus();
-              await this._explorer.refresh();
-            } else {
-              window.showErrorMessage(
-                `Failed to create kind cluster ${clusterName} : ${result.error}`
-              );
-              return;
-            }
-          } catch (err) {
-            window.showErrorMessage(
-              `Failed to create kind cluster ${clusterName} : ${result.error}`
-            );
-          }
-        }
+
+      //progress bar options
+      const progressOptions = {
+        title: `Creating Kind cluster ${clusterName}`,
+        location: ProgressLocation.Notification,
+      };
+
+      //messages
+      const successMessage = `Successfuly created Kind cluster ${clusterName}`;
+      const errorMessage = `Failed to create kind cluster ${clusterName}`;
+
+      // the initial progress action 
+      const actionPromise = this.execute(
+        [
+          "create",
+          "cluster",
+          "--name",
+          clusterName,
+          "--config",
+          kindConfig,
+        ],
+        undefined,
+        false
       );
+
+      //promises that need to be resolved on succcess
+      const successPromises = [];
+      successPromises.push(checkClusterStatus());
+      successPromises.push(this._explorer.refresh());
+      
+      await executeWithProgress(progressOptions, actionPromise,successMessage, successPromises, errorMessage,this.isCreated);
     } catch (err) {
       console.error(err);
     }
@@ -207,38 +209,24 @@ export class KindImpl implements Kind {
 
   async deleteCluster(kindCluster: string): Promise<void> {
     try {
-      window.withProgress(
-        {
-          title: `Deleting Kind cluster ${kindCluster}`,
-          location: ProgressLocation.Notification,
-        },
-        async () => {
-          let result;
-          try {
-            result = await this.execute(
-              ["delete", "cluster", "--name", kindCluster],
-              undefined,
-              false
-            );
-            // kind sends to error stream
-            if (result.error && this.isDeleted(kindCluster, result.error)) {
-              window.showInformationMessage(
-                `Successfuly deleted Kind cluster ${kindCluster}`
-              );
-            } else {
-              window.showErrorMessage(
-                `Failed to delete kind cluster ${kindCluster} : ${result.error}`
-              );
-            }
-            await checkClusterStatus();
-            await this._explorer.refresh();
-          } catch (err) {
-            window.showErrorMessage(
-              `Failed to delete kind cluster ${kindCluster} : ${result.error}`
-            );
-          }
-        }
+      const progressOptions = {
+        title: `Deleting Kind cluster ${kindCluster}`,
+        location: ProgressLocation.Notification,
+      };
+      const actionPromise = this.execute(
+        ["delete", "cluster", "--name", kindCluster],
+        undefined,
+        false
       );
+      const successMessage = `Successfuly deleted Kind cluster ${kindCluster}`;
+      const errorMessage = `Failed to delete kind cluster ${kindCluster}`;
+      
+      //promises that need to be resolved on succcess
+      const successPromises = [];
+      successPromises.push(checkClusterStatus());
+      successPromises.push(this._explorer.refresh());
+
+      await executeWithProgress(progressOptions,actionPromise,successMessage,successPromises,errorMessage,this.isDeleted);
     } catch (err) {
       console.error(err);
     }
@@ -284,25 +272,6 @@ export class KindImpl implements Kind {
    * @returns
    */
   async newKindCommand(...commandArgs: string[]): Promise<CliCommand> {
-    const gotKind = await this.checkPresent(CheckPresentMode.Silent);
-    if (!gotKind) {
-      await window.withProgress(
-        {
-          title: `${COMMAND} not found installing...`,
-          location: ProgressLocation.Notification,
-        },
-        async () => {
-          const result = await installKind(this.context.shell, undefined);
-          if (failed(result)) {
-            window.showErrorMessage(
-              `Failed to update ${COMMAND}: ${result.error}`
-            );
-          } else if (succeeded(result)) {
-            window.showInformationMessage(`Successfuly installed ${COMMAND}`);
-          }
-        }
-      );
-    }
     return createCliCommand(COMMAND, ...commandArgs);
   }
 
@@ -355,12 +324,14 @@ export class KindImpl implements Kind {
     return clusterCreatedRegx.test(mlineStdout);
   }
 
-  private isDeleted(kindCluster: string, stdout: string): boolean {
+  private isDeleted(kindCluster: string, stdOutOrErr: string): boolean {
     const clusterDeleteRegx = new RegExp(
       `Deleting cluster "${kindCluster}" ...`
     );
-    return clusterDeleteRegx.test(stdout);
+    return clusterDeleteRegx.test(stdOutOrErr);
   }
+
+  
 }
 
 /**
