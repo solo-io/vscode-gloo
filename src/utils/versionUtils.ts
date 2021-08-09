@@ -6,7 +6,7 @@ import { Octokit } from "octokit";
 import * as semver from "semver";
 import { Errorable,failed } from "../errorable";
 import * as fs from "fs";
-import * as moment from "moment";
+import moment = require("moment");
 
 const versionRe = new RegExp(/^[v]?([0-9]+\.[0-9]+\.[0-9]+[-\w]*)$/);
 const stableVersionRe = new RegExp(/^[v]?([0-9]+\.[0-9]+\.[0-9]+)$/);
