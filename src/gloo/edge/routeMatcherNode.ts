@@ -9,6 +9,7 @@ import { ContextType } from "./contextTypes";
 import * as path from "path";
 import { getUpstreamsForRoute } from "../resourceHelper";
 import { GlooCtl } from "../../ctl/glooctl";
+import { IMAGES } from "../../constants";
 
 
 export class RouteMatcherNode extends GlooEdgeNodeImpl{
@@ -25,7 +26,7 @@ export class RouteMatcherNode extends GlooEdgeNodeImpl{
   }
 
   get iconPath(): Uri {
-    const iPath = path.join(__dirname,"../../../../images","route.svg");
+    const iPath = path.join(__dirname,IMAGES,"route.svg");
     return Uri.file(iPath);
   }
 

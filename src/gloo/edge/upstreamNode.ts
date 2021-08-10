@@ -8,6 +8,7 @@ import { GlooEdgeNode,GlooEdgeNodeImpl, NodeState } from "../glooEdgeNode";
 import { ContextType } from "./contextTypes";
 import * as path from "path";
 import { GlooCtl } from "../../ctl/glooctl";
+import { IMAGES } from "../../constants";
 
 
 export class UpstreamNode extends GlooEdgeNodeImpl{
@@ -23,7 +24,7 @@ export class UpstreamNode extends GlooEdgeNodeImpl{
   }
 
   get iconPath(): Uri {
-    const iPath = path.join(__dirname,"../../../../images","stream.svg");
+    const iPath = path.join(__dirname,IMAGES,"stream.svg");
     return Uri.file(iPath);
   }
 

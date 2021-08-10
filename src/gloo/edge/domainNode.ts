@@ -7,6 +7,7 @@ import { ProviderResult, TreeItemCollapsibleState, Uri } from "vscode";
 import { GlooEdgeNode,GlooEdgeNodeImpl } from "../glooEdgeNode";
 import { ContextType } from "./contextTypes";
 import * as path from "path";
+import { IMAGES } from "../../constants";
 
 
 export class DomainNode extends GlooEdgeNodeImpl{
@@ -19,7 +20,7 @@ export class DomainNode extends GlooEdgeNodeImpl{
   }
 
   get iconPath(): Uri {
-    const iPath = path.join(__dirname,"../../../../images","domain.svg");
+    const iPath = path.join(__dirname,IMAGES,"domain.svg");
     return Uri.file(iPath);
   }
 

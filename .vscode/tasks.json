@@ -4,10 +4,11 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "dev-watch",
       "type": "npm",
       "script": "watch",
-      "problemMatcher": "$tsc-watch",
+      "problemMatcher": [
+        "$esbuild-watch"
+      ],
       "isBackground": true,
       "presentation": {
         "reveal": "never"
@@ -20,7 +21,7 @@
     {
       "type": "npm",
       "script": "test-watch",
-      "problemMatcher": "$tsc-watch",
+      "problemMatcher": "$esbuild-watch",
       "isBackground": true,
       "presentation": {
         "reveal": "never"

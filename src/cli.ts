@@ -8,8 +8,8 @@
 import * as vscode from "vscode";
 import { SpawnOptions, spawn } from "child_process";
 import * as stream from "stream";
-import * as JStream from "jstream";
 import * as events from "events";
+import JStream = require('jstream');
 
 export interface CliExitData {
   readonly error: string | Error;

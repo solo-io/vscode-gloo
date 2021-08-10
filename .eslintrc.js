@@ -30,5 +30,5 @@ module.exports = {
     "keyword-spacing": ["error"],
     "semi": ["error"]
   },
-
+  ignorePatterns: ["gulpfile.js"]
 };

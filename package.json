@@ -42,7 +42,7 @@
     "onLanguage:yaml",
     "onFileSystem:gloo"
   ],
-  "main": "./out/src/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -400,18 +400,18 @@
     "gloo"
   ],
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "vscode:publish": "vsce publish",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "yarn run test-compile && yarn run lint",
+    "build-snippets": "node ./out/build/build-snippets.js",
+    "clean": "gulp clean",
+    "esbuild-base": "gulp build",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "clean": "rimraf out",
-    "build": "yarn run clean && yarn run lint && yarn run compile",
     "lint:fix": "eslint . --ext .ts --fix",
-    "ext-test": "yarn run pretest && node ./out/src/test/runTest.js",
-    "snippets-build": "node ./out/build/build-snippets.js"
+    "pretest": "yarn run test-compile && yarn run lint",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js",
+    "vscode:prepublish": "gulp",
+    "vscode:package": "gulp package",
+    "watch": "esbuild --bundle ./src/extension.ts --outfile=./out/extension.js --sourcemap --format=cjs  --platform=node --external:vscode --external:shelljs --external:bufferutil --external:utf-8-validate --external:spawn-sync --watch"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -427,13 +427,16 @@
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "chai": "^4.3.4",
+    "esbuild": "^0.12.19",
     "eslint": "^7.27.0",
     "eslint-plugin-header": "^3.1.1",
     "glob": "^7.1.7",
+    "gulp": "^4.0.2",
+    "gulp-esbuild": "^0.8.5",
     "mocha": "^8.4.0",
-    "ts-loader": "^9.2.2",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.2",
+    "vsce": "^1.96.1",
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
