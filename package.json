@@ -455,7 +455,7 @@
     "request": "^2.88.2",
     "request-progress": "^3.0.0",
     "semver": "^7.3.5",
-    "shelljs": "^0.8.4",
+    "shelljs": "^0.8.5",
     "string-format": "^2.0.0",
     "targz": "^1.0.1",
     "tmp": "^0.2.1",
